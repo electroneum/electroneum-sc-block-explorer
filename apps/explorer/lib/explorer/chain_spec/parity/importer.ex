@@ -1,7 +1,7 @@
 # credo:disable-for-this-file
 defmodule Explorer.ChainSpec.Parity.Importer do
   @moduledoc """
-  Imports data from Parity/Open Ethereum chain spec.
+  Imports data from Parity/Open Electroneum chain spec.
   """
 
   require Logger
@@ -12,14 +12,14 @@ defmodule Explorer.ChainSpec.Parity.Importer do
   alias Explorer.Chain.Hash.Address, as: AddressHash
   alias Explorer.Chain.Wei
   alias Explorer.ChainSpec.GenesisData
-  alias Explorer.ChainSpec.POA.Importer, as: PoaEmissionImporter
+  alias Explorer.ChainSpec.Electroneum.Importer, as: PoaEmissionImporter
 
   import Ecto.Query
 
   @max_block_number :infinity
 
   def import_emission_rewards(chain_spec) do
-    if Application.get_env(:explorer, GenesisData)[:emission_format] == "POA" do
+    if Application.get_env(:explorer, GenesisData)[:emission_format] == "Electroneum" do
       PoaEmissionImporter.import_emission_rewards()
     else
       import_rewards_from_chain_spec(chain_spec)

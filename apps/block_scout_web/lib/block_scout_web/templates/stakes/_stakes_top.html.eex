@@ -42,7 +42,7 @@
             href="https://omni.xdaichain.com/"
             target="_blank"
         >
-            <span class="btn-full-primary-text"><%= gettext("Bridge STAKE to Ethereum") %></span>
+            <span class="btn-full-primary-text"><%= gettext("Bridge STAKE to Electroneum") %></span>
         </a>
         <a
             class="btn-full-primary full-width btn-add-full"

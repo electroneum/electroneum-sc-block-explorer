@@ -75,7 +75,7 @@
                       to: tokens_path(@conn, :index)
                     ) %>
                 <%= link(
-                      gettext("Bridged from Ethereum"),
+                      gettext("Bridged from Electroneum"),
                       class: "dropdown-item #{tab_status("bridged-tokens/eth", @conn.request_path)}",
                       to: bridged_tokens_path(@conn, :show, :eth),
                       style: "white-space: nowrap;"
@@ -86,7 +86,7 @@
                       to: bridged_tokens_path(@conn, :show, :bsc)
                     ) %>
                 <%= link(
-                      gettext("Ether"),
+                      gettext("ETN"),
                       class: "dropdown-item #{tab_status("accounts", @conn.request_path)}",
                       to: address_path(@conn, :index)
                     ) %>
@@ -107,7 +107,7 @@
                       to: tokens_path(@conn, :index)
                     ) %>
                 <%= link(
-                      gettext("Ether"),
+                      gettext("ETN"),
                       class: "dropdown-item #{tab_status("accounts", @conn.request_path)}",
                       to: address_path(@conn, :index)
                     ) %>

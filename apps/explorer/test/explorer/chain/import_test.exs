@@ -956,7 +956,7 @@ defmodule Explorer.Chain.ImportTest do
       assert to_string(created_contract_address_hash) == "0xffc87239eb0267bc3ca2cd51d12fbf278e02ccb4"
     end
 
-    test "updates transaction error and status from internal transactions when status is not set from (pre-Byzantium/Ethereum Classic) receipts" do
+    test "updates transaction error and status from internal transactions when status is not set from (pre-Byzantium/Electroneum Classic) receipts" do
       assert {:ok, _} =
                Import.all(%{
                  addresses: %{

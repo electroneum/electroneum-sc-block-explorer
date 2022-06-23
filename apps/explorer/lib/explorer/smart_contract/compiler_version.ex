@@ -7,7 +7,7 @@ defmodule Explorer.SmartContract.CompilerVersion do
   @unsupported_vyper_versions ~w(v0.2.9 v0.2.10)
 
   @doc """
-  Fetches a list of compilers from the Ethereum Solidity API.
+  Fetches a list of compilers from the Electroneum Solidity API.
   """
   @spec fetch_versions(:solc | :vyper) :: {atom, [map]}
   def fetch_versions(compiler) do

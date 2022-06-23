@@ -10,7 +10,7 @@ defmodule BlockScoutWeb.LayoutView do
   @issue_url "https://github.com/blockscout/blockscout/issues/new"
   @default_other_networks [
     %{
-      title: "POA",
+      title: "Electroneum",
       url: "https://blockscout.com/poa/core"
     },
     %{
@@ -23,7 +23,7 @@ defmodule BlockScoutWeb.LayoutView do
       url: "https://blockscout.com/xdai/mainnet"
     },
     %{
-      title: "Ethereum Classic",
+      title: "Electroneum Classic",
       url: "https://blockscout.com/etc/mainnet",
       other?: true
     },
@@ -53,7 +53,7 @@ defmodule BlockScoutWeb.LayoutView do
   end
 
   def network_title do
-    Keyword.get(application_config(), :network) || "POA"
+    Keyword.get(application_config(), :network) || "Electroneum"
   end
 
   defp application_config do

@@ -1,6 +1,6 @@
 defmodule EthereumJSONRPC.Ganache do
   @moduledoc """
-  Ethereum JSONRPC methods that are only supported by [Ganache](https://github.com/trufflesuite/ganache-core#implemented-methods).
+  Electroneum JSONRPC methods that are only supported by [Ganache](https://github.com/trufflesuite/ganache-core#implemented-methods).
   """
 
   @behaviour EthereumJSONRPC.Variant

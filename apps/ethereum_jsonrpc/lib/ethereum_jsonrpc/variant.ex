@@ -1,7 +1,7 @@
 defmodule EthereumJSONRPC.Variant do
   @moduledoc """
-  A variant of the Ethereum JSONRPC API.  Each Ethereum client supports slightly different versions of the non-standard
-  Ethereum JSONRPC API.  The variant callbacks abstract over this difference.
+  A variant of the Electroneum JSONRPC API.  Each Electroneum client supports slightly different versions of the non-standard
+  Electroneum JSONRPC API.  The variant callbacks abstract over this difference.
   """
 
   alias EthereumJSONRPC.{FetchedBeneficiaries, Transaction}
@@ -15,7 +15,7 @@ defmodule EthereumJSONRPC.Variant do
   @type raw_trace_params :: map()
 
   @doc """
-  Fetch the block reward contract beneficiaries for a given blocks from the variant of the Ethereum JSONRPC API.
+  Fetch the block reward contract beneficiaries for a given blocks from the variant of the Electroneum JSONRPC API.
 
   For more information on block reward contracts see:
   https://wiki.parity.io/Block-Reward-Contract.html
@@ -30,7 +30,7 @@ defmodule EthereumJSONRPC.Variant do
               {:ok, FetchedBeneficiaries.t()} | {:error, reason :: term} | :ignore
 
   @doc """
-  Fetches the `t:Explorer.Chain.InternalTransaction.changeset/2` params from the variant of the Ethereum JSONRPC API.
+  Fetches the `t:Explorer.Chain.InternalTransaction.changeset/2` params from the variant of the Electroneum JSONRPC API.
 
   ## Returns
 
@@ -45,7 +45,7 @@ defmodule EthereumJSONRPC.Variant do
             ) :: {:ok, [internal_transaction_params]} | {:error, reason :: term} | :ignore
 
   @doc """
-  Fetches the `t:Explorer.Chain.InternalTransaction.changeset/2` params from the variant of the Ethereum JSONRPC API.
+  Fetches the `t:Explorer.Chain.InternalTransaction.changeset/2` params from the variant of the Electroneum JSONRPC API.
   Uses API for fetching all internal transactions in the block
 
   ## Returns
@@ -61,7 +61,7 @@ defmodule EthereumJSONRPC.Variant do
             ) :: {:ok, [internal_transaction_params]} | {:error, reason :: term} | :ignore
 
   @doc """
-  Fetch the `t:Explorer.Chain.Transaction.changeset/2` params for pending transactions from the variant of the Ethereum
+  Fetch the `t:Explorer.Chain.Transaction.changeset/2` params for pending transactions from the variant of the Electroneum
   JSONRPC API.
 
   ## Returns
@@ -74,7 +74,7 @@ defmodule EthereumJSONRPC.Variant do
               {:ok, [Transaction.params()]} | {:error, reason :: term} | :ignore
 
   @doc """
-  Fetches the `t:Explorer.Chain.InternalTransaction.changeset/2` params from the variant of the Ethereum JSONRPC API.
+  Fetches the `t:Explorer.Chain.InternalTransaction.changeset/2` params from the variant of the Electroneum JSONRPC API.
   Uses API for retrieve first trace of transaction
 
   ## Returns

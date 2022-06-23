@@ -1,6 +1,6 @@
 defmodule Explorer.Etherscan.RPC do
   @moduledoc """
-  This module contains functions for working with mimicking of ETH RPC.
+  This module contains functions for working with mimicking of ETN RPC.
 
   """
 

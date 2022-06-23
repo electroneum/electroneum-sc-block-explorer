@@ -335,7 +335,7 @@ interface ENSReverseRegistrarI {
 // File: contracts/MultiOracleRequestI.sol
 
 /*
- * Interface for requests to the multi-rate oracle (for EUR/ETH and ERC20)
+ * Interface for requests to the multi-rate oracle (for EUR/ETN and ERC20)
  * Copy this to projects that need to access the oracle.
  * This is a strict superset of OracleRequestI to ensure compatibility.
  * See rate-oracle project for implementation.
@@ -349,17 +349,17 @@ interface MultiOracleRequestI {
     function EUR_WEI() external view returns (uint256); // solhint-disable func-name-mixedcase
 
     /**
-     * @dev Timestamp of when the last update for the ETH rate occurred
+     * @dev Timestamp of when the last update for the ETN rate occurred
      */
     function lastUpdate() external view returns (uint256);
 
     /**
-     * @dev Number of EUR per ETH (rounded down!)
+     * @dev Number of EUR per ETN (rounded down!)
      */
     function ETH_EUR() external view returns (uint256); // solhint-disable func-name-mixedcase
 
     /**
-     * @dev Number of EUR cent per ETH (rounded down!)
+     * @dev Number of EUR cent per ETN (rounded down!)
      */
     function ETH_EURCENT() external view returns (uint256); // solhint-disable func-name-mixedcase
 
@@ -379,7 +379,7 @@ interface MultiOracleRequestI {
     function lastRateUpdate(address tokenAddress) external view returns (uint256);
 
     /**
-     * @dev Emitted on rate update - using address(0) as tokenAddress for ETH updates
+     * @dev Emitted on rate update - using address(0) as tokenAddress for ETN updates
      */
     event RateUpdated(address indexed tokenAddress, uint256 indexed eurRate);
 
@@ -751,7 +751,7 @@ library Address {
      *
      * Requirements:
      *
-     * - the calling contract must have an ETH balance of at least `value`.
+     * - the calling contract must have an ETN balance of at least `value`.
      * - the called Solidity function must be `payable`.
      *
      * _Available since v3.1._
@@ -1608,7 +1608,7 @@ contract CS3_1OnChainShop {
         return availableForSale(_presale, _type) == 0;
     }
 
-    // Buy assets. The number of assets is determined from the amount of ETH sent.
+    // Buy assets. The number of assets is determined from the amount of ETN sent.
     function acceptAndBuy(CS3_1PropertiesI.AssetType _type, bool _acceptTermsCryptoPostAt, string calldata _acceptanceText)
     external payable
     requireOpen
@@ -1616,7 +1616,7 @@ contract CS3_1OnChainShop {
         buyFor(msg.sender, _type, _acceptTermsCryptoPostAt, _acceptanceText);
     }
 
-    // Buy assets. The number of assets is determined from the amount of ETH sent.
+    // Buy assets. The number of assets is determined from the amount of ETN sent.
     function buyFor(address _recipient, CS3_1PropertiesI.AssetType _type, bool _acceptTermsCryptoPostAt, string calldata _acceptanceText)
     public payable
     requireOpen

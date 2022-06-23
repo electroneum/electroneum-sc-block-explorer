@@ -674,7 +674,7 @@ contract ERC20Detailed is IERC20 {
     * be displayed to a user as `5,05` (`505 / 10 ** 2`).
     *
     * Tokens usually opt for a value of 18, imitating the relationship between
-    * Ether and Wei.
+    * ETN and Wei.
     *
     * > Note that this information is only used for _display_ purposes: it in
     * no way affects any of the arithmetic of the contract, including
@@ -712,7 +712,7 @@ contract ERC20Permittable is ERC20, ERC20Detailed {
             keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
             keccak256(bytes(_name)),
             keccak256(bytes(version)),
-            1, // Chain ID for Ethereum Mainnet
+            1, // Chain ID for Electroneum Mainnet
             address(this)
         ));
     }
@@ -830,7 +830,7 @@ contract ERC20Permittable is ERC20, ERC20Detailed {
 
 
 
-// This is a base staking token ERC677 contract for Ethereum Mainnet side
+// This is a base staking token ERC677 contract for Electroneum Mainnet side
 // which is derived by the child ERC677MultiBridgeToken contract.
 contract ERC677BridgeToken is Ownable, ERC20Permittable {
     using SafeERC20 for ERC20;

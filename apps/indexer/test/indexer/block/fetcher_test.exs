@@ -263,8 +263,8 @@ defmodule Indexer.Block.FetcherTest do
     #   )
     # end
 
-    # We can't currently index the whole Ethereum Mainnet, so we don't know what is the first full block.
-    #   Implement when a full block is found for Ethereum Mainnet and remove :no_geth tag
+    # We can't currently index the whole Electroneum Mainnet, so we don't know what is the first full block.
+    #   Implement when a full block is found for Electroneum Mainnet and remove :no_geth tag
     @tag :no_geth
     test "can import range with all synchronous imported schemas", %{
       block_fetcher: %Fetcher{json_rpc_named_arguments: json_rpc_named_arguments} = block_fetcher

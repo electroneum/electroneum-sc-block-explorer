@@ -16,7 +16,7 @@ defmodule Explorer.Chain.Block do
 
   @typedoc """
   How much work is required to find a hash with some number of leading 0s.  It is measured in hashes for PoW
-  (Proof-of-Work) chains like Ethereum.  In PoA (Proof-of-Authority) chains, it does not apply as blocks are validated
+  (Proof-of-Work) chains like Electroneum.  In PoA (Proof-of-Authority) chains, it does not apply as blocks are validated
   in a round-robin fashion, and so the value is always `Decimal.new(0)`.
   """
   @type difficulty :: Decimal.t()

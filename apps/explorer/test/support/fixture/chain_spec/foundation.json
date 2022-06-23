@@ -1,5 +1,5 @@
 {
-	"name": "Ethereum",
+	"name": "Electroneum",
 	"dataDir": "ethereum",
 	"engine": {
 		"Ethash": {

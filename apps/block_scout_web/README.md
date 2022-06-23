@@ -1,6 +1,6 @@
 # BlockScout Web
 
-This is a tool for inspecting and analyzing the POA Network blockchain from a web browser.
+This is a tool for inspecting and analyzing the Electroneum Network blockchain from a web browser.
 
 ## Machine Requirements
 

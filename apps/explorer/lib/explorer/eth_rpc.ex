@@ -1,6 +1,6 @@
 defmodule Explorer.EthRPC do
   @moduledoc """
-  Ethereum JSON RPC methods logic implementation.
+  Electroneum JSON RPC methods logic implementation.
   """
 
   alias Ecto.Type, as: EctoType

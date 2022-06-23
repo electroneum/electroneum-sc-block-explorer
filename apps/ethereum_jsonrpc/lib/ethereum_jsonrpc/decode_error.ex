@@ -8,7 +8,7 @@ defmodule EthereumJSONRPC.DecodeError do
 
   defmodule Request do
     @moduledoc """
-    Ethereum JSONRPC request whose `EthereumJSONRPC.DecodeError.Response` had a decode error.
+    Electroneum JSONRPC request whose `EthereumJSONRPC.DecodeError.Response` had a decode error.
     """
 
     @enforce_keys [:url, :body]
@@ -17,7 +17,7 @@ defmodule EthereumJSONRPC.DecodeError do
 
   defmodule Response do
     @moduledoc """
-    Ethereum JSONRPC response that had a decode error.
+    Electroneum JSONRPC response that had a decode error.
     """
 
     @enforce_keys [:status_code, :body]
@@ -57,7 +57,7 @@ defmodule EthereumJSONRPC.DecodeError do
     hide_url = Map.get(decode_error, :hide_url, false)
 
     """
-    Failed to decode Ethereum JSONRPC response:
+    Failed to decode Electroneum JSONRPC response:
 
       request:
 
