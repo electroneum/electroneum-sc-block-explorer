@@ -1020,13 +1020,6 @@ msgid "ERC-721 "
 msgstr ""
 
 #, elixir-format
-#: lib/block_scout_web/templates/address_token/overview.html.eex:1
-#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:104 lib/block_scout_web/templates/smart_contract/_functions.html.eex:104
-#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:146
-msgid "ETN"
-msgstr ""
-
-#, elixir-format
 #: lib/block_scout_web/templates/api_docs/eth_rpc.html.eex:4
 msgid "ETN RPC API Documentation"
 msgstr ""
@@ -1116,6 +1109,10 @@ msgstr ""
 #: lib/block_scout_web/templates/layout/app.html.eex:51 lib/block_scout_web/templates/transaction/_pending_tile.html.eex:20
 #: lib/block_scout_web/templates/transaction/_tile.html.eex:43 lib/block_scout_web/templates/transaction/overview.html.eex:411
 #: lib/block_scout_web/views/wei_helpers.ex:78
+#, elixir-format
+#: lib/block_scout_web/templates/address_token/overview.html.eex:1
+#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:104 lib/block_scout_web/templates/smart_contract/_functions.html.eex:104
+#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:146
 msgid "ETN"
 msgstr ""
 

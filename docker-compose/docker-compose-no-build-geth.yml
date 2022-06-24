@@ -17,9 +17,9 @@ services:
   blockscout:
     depends_on:
       - db
-    image: blockscout/blockscout:${DOCKER_TAG:-latest}
+    image: explorer # Run 'docker build -t explorer -f docker/Dockerfile .' on parent folder before running docker compose, otherwise image won't be found
     restart: always
-    container_name: 'blockscout'
+    container_name: 'explorer'
     links:
       - db:database
     command: 'mix do ecto.create, ecto.migrate, phx.server'
