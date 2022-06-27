@@ -67,7 +67,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/chain/_metatags.html.eex:2
-msgid "%{subnetwork} %{network} Explorer"
+msgid "%{subnetwork} Block Explorer"
 msgstr ""
 
 #, elixir-format
