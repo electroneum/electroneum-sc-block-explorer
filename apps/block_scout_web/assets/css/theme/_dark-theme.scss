@@ -2,7 +2,7 @@ $body-dark: #1c1d31; // body background
 $dark-bg: #22223a; // hero shade
 $dark-light-bg: #282945; // pills bg shade
 $dark-light: #313355; // tile light top share
-$labels-dark: #8a8dba; // header nav, labels
+$labels-dark: #52dbff; // header nav, labels
 $dark-stakes-banned-background: #3e314c;
 
 // Switcher
@@ -225,13 +225,13 @@ $dark-stakes-banned-background: #3e314c;
 	.tile span[data-address-hash],
 	.tile a[data-test=token_link] { color: $dark-primary; }
 	.fade-up-blocks-chain .tile-type-block-animation .tile-type-line-up {
-		background-color: $dark-primary;
+		background-color: $primary;
 	}
 	.tile.tile-type-block {
 		border-left-color: $dark-primary
 	}
 	.tile.tile-type-block .tile-status-label {
-		color: $dark-primary;
+		color: $primary;
 	}
 	.tile.tile-type-block .tile-transaction-type-block {
 		border-right-color: $dark-primary;
