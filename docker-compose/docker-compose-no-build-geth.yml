@@ -17,11 +17,7 @@ services:
   blockscout:
     depends_on:
       - db
-<<<<<<< Updated upstream
     image: explorer # Run 'docker build -t explorer -f docker/Dockerfile .' on parent folder before running docker compose, otherwise image won't be found
-=======
-    image: explorer
->>>>>>> Stashed changes
     restart: always
     container_name: 'explorer'
     links:
