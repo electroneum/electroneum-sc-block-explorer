@@ -7,7 +7,7 @@ defmodule BlockScoutWeb.LayoutView do
 
   import BlockScoutWeb.AddressView, only: [from_address_hash: 1]
 
-  @issue_url "https://github.com/blockscout/blockscout/issues/new"
+  @issue_url "https://github.com/electroneum/electroneum-sc-block-explorer/issues/new"
   @default_other_networks [
     %{
       title: "Electroneum",
@@ -66,7 +66,7 @@ defmodule BlockScoutWeb.LayoutView do
 
   def issue_link(conn) do
     params = [
-      labels: "BlockScout",
+      labels: "Electroneum Block Explorer",
       body: issue_body(conn),
       title: subnetwork_title() <> ": <Issue Title>"
     ]
@@ -88,7 +88,7 @@ defmodule BlockScoutWeb.LayoutView do
     ### Environment
     * Elixir Version: #{System.version()}
     * Erlang Version: #{System.otp_release()}
-    * BlockScout Version: #{version()}
+    * Explorer Version: #{version()}
 
     * User Agent: `#{user_agent}`
 
