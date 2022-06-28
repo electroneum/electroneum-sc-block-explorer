@@ -3,6 +3,7 @@ $primary: #133629;
 $secondary: #3E6957;
 $tertiary: #93d7ff;
 $additional-font: #fff;
+$indigo: #3D49A6;
 
 // footer
 $footer-background-color: $primary;
@@ -151,32 +152,32 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
   }
 
   .tile.tile-type-block {
-		border-left-color: #4FE8D6 !important;
+		border-left-color: $indigo !important;
 	}
 
   a {
-    color: $labels-dark;
+    color: $indigo;
   }
 
   a:hover, a:focus {
-    color: $labels-dark;
+    color: $indigo;
   }
 
   a.ad-url {
-    color: $labels-dark !important;
+    color: $indigo!important;
   }
 
   .btn-line {
     background-color: transparent !important;
-    border-color: $labels-dark !important;
-    color: $labels-dark !important;
+    border-color: $indigo!important;
+    color: $indigo !important;
 
     &[disabled] {
         &,
         &:hover {
             background-color: transparent !important;
-            border-color: $labels-dark !important;
-            color: $labels-dark !important;
+            border-color: $indigo !important;
+            color: $indigo !important;
         }
     }
   }
@@ -186,26 +187,26 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
   }
 
   .btn-no-border-link-to-tems {
-    border-color: $labels-dark !important;
-    color: $labels-dark !important;
+    border-color: $indigo !important;
+    color: $indigo !important;
   }
 
   .btn-copy-icon, .btn-qr-icon, .btn-address-card-icon {
-		border-color: $labels-dark !important;
+		border-color: $indigo !important;
 		path {
-			fill: $labels-dark !important;
+			fill: $indigo !important;
 		}
 		&:hover {
-			background-color: #4FE8D6 !important;
+			background-color: $indigo !important;
 			path {
-				fill: #4FE8D6 !important;
+				fill: $indigo !important;
 			}
 		}
     &.btn-copy-icon-small {
       &:hover {
         background-color: transparent !important;
         path {
-          fill: #4FE8D6!important;
+          fill: $indigo!important;
         }
       }
     }
@@ -213,24 +214,24 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 
   .btn-wallet-icon, .btn-contract-icon {
     background-color: transparent !important;
-    border-color: $labels-dark !important;
-    color: $labels-dark !important;
+    border-color: $indigo !important;
+    color: $indigo !important;
 
     &:hover {
-      background-color: #4FE8D6 !important;
-      border-color: #4FE8D6 !important;
-      color: #4FE8D6 !important;
+      background-color: $indigo !important;
+      border-color: $indigo !important;
+      color: $indigo !important;
     }
   }
 
   .btn-contract-icon {
     path {
-      fill: $labels-dark !important;
+      fill: $indigo !important;
     }
 
     &:hover {
 			path {
-				fill: #4FE8D6 !important;
+				fill: $indigo !important;
 			}
 		}
   }
@@ -245,10 +246,10 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 
   .card-body {  
     a:not(.dropdown-item):not(.button):not(.alert-link):not(#dropdown-tokens):not(.btn-line):not(.page-link) {
-        color: $labels-dark !important;
+        color: $indigo !important;
 
         &:hover {
-            color: $labels-dark !important;
+            color: $indigo !important;
         }
     }
   }
@@ -277,6 +278,6 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 		color: $labels-dark !important;
 	}
   .footer-list ul li::before {
-    background-color: $secondary !important;
+    background-color: $primary !important;
   }
 }
