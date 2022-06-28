@@ -23,9 +23,9 @@ $dashboard-stats-item-value-color: #fff; // stat values
 
 $dashboard-stats-item-border-color: $secondary; // stat border
 
-$dashboard-banner-gradient-start: $primary; // gradient begin
+$dashboard-banner-gradient-start: $dark-primary; // gradient begin
 
-$dashboard-banner-gradient-end: $secondary; // gradient end
+$dashboard-banner-gradient-end: darken($dashboard-banner-gradient-start,5%); // gradient end
 
 $dashboard-banner-network-plain-container-background-color: $secondary; // stats bg
 
@@ -48,29 +48,29 @@ $btn-address-card-icon-color: $secondary; // btn address color
 $btn-contract-color: $secondary;
 
 //links & tile
-$tile-body-a-color: $secondary;
-$tile-type-block-color: $secondary;
-$tile-type-progress-bar-color: $secondary;
+$tile-body-a-color: $dark-primary;
+$tile-type-block-color: $dark-primary;
+$tile-type-progress-bar-color: $dark-primary;
 
 a {
-  color: $secondary;
+  color: $dark-primary;
 }
 
 a:hover, a:focus {
-  color: $secondary;
+  color: $dark-primary;
 }
 
 .tile .tile-body a,
 .tile a:hover,
 .tile span[data-address-hash],
 .tile a[data-test=token_link]
-a.tile-title { color: $secondary !important; }
+a.tile-title { color: $dark-primary !important; }
 .card-body {  
   a:not(.dropdown-item):not(.button):not([data-test=address_hash_link]):not(.alert-link):not(#dropdown-tokens):not(.btn-line):not(.page-link):not(.active) {
-    color: $secondary;
+    color: $dark-primary;
 
     &:hover {
-      color: $secondary;
+      color: $dark-primary;
     }
   }
 }
@@ -151,7 +151,7 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
   }
 
   .tile.tile-type-block {
-		border-left-color: $secondary !important;
+		border-left-color: #4FE8D6 !important;
 	}
 
   a {
@@ -196,16 +196,16 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 			fill: $labels-dark !important;
 		}
 		&:hover {
-			background-color: $labels-dark !important;
+			background-color: #4FE8D6 !important;
 			path {
-				fill: $body-dark !important;
+				fill: #4FE8D6 !important;
 			}
 		}
     &.btn-copy-icon-small {
       &:hover {
         background-color: transparent !important;
         path {
-          fill: $labels-dark !important;
+          fill: #4FE8D6!important;
         }
       }
     }
@@ -217,9 +217,9 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
     color: $labels-dark !important;
 
     &:hover {
-      background-color: $labels-dark !important;
-      border-color: $body-dark !important;
-      color: $body-dark !important;
+      background-color: #4FE8D6 !important;
+      border-color: #4FE8D6 !important;
+      color: #4FE8D6 !important;
     }
   }
 
@@ -230,7 +230,7 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 
     &:hover {
 			path {
-				fill: $body-dark !important;
+				fill: #4FE8D6 !important;
 			}
 		}
   }

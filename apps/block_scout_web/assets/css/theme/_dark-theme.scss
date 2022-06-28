@@ -2,7 +2,7 @@ $body-dark: #1c1d31; // body background
 $dark-bg: #22223a; // hero shade
 $dark-light-bg: #282945; // pills bg shade
 $dark-light: #313355; // tile light top share
-$labels-dark: #52dbff; // header nav, labels
+$labels-dark: #4FE8D6; // header nav, labels
 $dark-stakes-banned-background: #3e314c;
 
 // Switcher
@@ -114,13 +114,13 @@ $dark-stakes-banned-background: #3e314c;
 	.dashboard-banner-chart-legend .dashboard-banner-chart-legend-item {
 		&.price-per-day {
 			&::before {
-			  background-color: $dark-primary;
+			  background-color: darken($primary,5%);
 			}
 		  }
 	  
 		  &.gas-price-oracle {
 			&::before {
-			  background-color: $dark-primary;
+			  background-color: darken($primary,5%);
 			}
 		  }
 	  
@@ -223,12 +223,12 @@ $dark-stakes-banned-background: #3e314c;
 	.tile .tile-body a,
 	.tile a:hover,
 	.tile span[data-address-hash],
-	.tile a[data-test=token_link] { color: $dark-primary; }
+	.tile a[data-test=token_link] { color: $primary; }
 	.fade-up-blocks-chain .tile-type-block-animation .tile-type-line-up {
 		background-color: $primary;
 	}
 	.tile.tile-type-block {
-		border-left-color: $dark-primary
+		border-left-color: #4FE8D6;
 	}
 	.tile.tile-type-block .tile-status-label {
 		color: $primary;

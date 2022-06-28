@@ -1105,7 +1105,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/layout/_topnav.html.eex:138
-msgid "Eth RPC"
+msgid "ETN RPC"
 msgstr ""
 
 #, elixir-format
