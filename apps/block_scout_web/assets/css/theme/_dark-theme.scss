@@ -166,7 +166,7 @@ $dark-stakes-banned-background: #3e314c;
 			color: $dark-primary;
 		}
 		&.active {
-			background-color: darken($turquoise,10%);
+			background-color: $dark-primary-alternate; 
 			color: #fff;
 		}
 	}
