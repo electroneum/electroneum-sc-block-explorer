@@ -1,13 +1,12 @@
-$dashboard-banner-gradient-start: #042B45 !default;
+$dashboard-banner-gradient-start: $dark-primary !default;
 $dashboard-banner-gradient-end: lighten(
   $dashboard-banner-gradient-start,
   5%
 ) !default;
-$indigo: #3D49A6 !default;
 $dashboard-banner-network-plain-container-background-color: lighten($dashboard-banner-gradient-end, 5%) !default;
 $dashboard-line-color-price: lighten($dashboard-banner-gradient-end, 5%) !default;
 $dashboard-line-color-price-dark-theme: lighten($dashboard-banner-gradient-end, 5%) !default;
-$dashboard-line-color-market: $primary !default;
+$dashboard-line-color-market: $secondary !default;
 $dashboard-line-color-market-dark-theme: $secondary !default;
 $dashboard-line-color-transactions: $warning !default;
 $dashboard-line-color-transactions-dark-theme: $warning !default;
@@ -21,8 +20,7 @@ $dashboard-banner-chart-axis-font-color: $dashboard-stats-item-value-color !defa
 $dashboard-banner-chart-axis-font-color-alt: #333;
 
 .dashboard-banner-container {
-  //@include gradient-container();
-  background-color: $indigo;
+  @include gradient-container();
   margin-bottom: 3rem;
   overflow: hidden;
   padding: 0;
