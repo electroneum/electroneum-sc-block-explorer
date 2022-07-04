@@ -51,8 +51,9 @@ $teal: #009097 !default;
 $cyan: #90e1d8 !default;
 $dark-purple: #923dc3 !default;
 
-$ETN-blue:#4FE8D6 !default;
+$ETN-blue:#2bb2f4 !default;
 $ETN-dark-blue:#042B45 !default;
+$ETN-dark: #0d3548 !default;
 $ETN-indigo:#3D49A6 !default;
 $ETN-purlple: #7E3487 !default;
 $ETN-burgundy:#7B003D !default;
@@ -78,6 +79,7 @@ $colors: map-merge(
     "dark-purple": $dark-purple,
     "ETN-blue": $ETN-blue,
     "ETN-dark-blue": $ETN-dark-blue,
+    "ETN-dark": $ETN-dark,
     "ETN-indigo": $ETN-indigo,
     "ETN-purlple": $ETN-purlple,
     "ETN-burgundy": $ETN-burgundy,
@@ -94,7 +96,7 @@ $colors: map-merge(
   $colors
 );
 
-$primary: $indigo !default;
+$primary: $ETN-blue !default;
 $dark-primary: #9b62ff !default;
 $dark-primary-alternate: #9b62ff !default;
 $secondary: #7dd79f !default;

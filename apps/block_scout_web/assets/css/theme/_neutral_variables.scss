@@ -1,10 +1,11 @@
 // general ETN variables
-$primary: #5c34a2;
+$primary: #2bb2f4;
 $secondary: #87e1a9;
 $tertiary: #bf9cff;
 $additional-font: #fff;
 
-$ETN-blue:#4FE8D6 !default;
+$ETN-blue:#2bb2f4 !default;
+$ETN-dark: #0d3548 !default;
 $ETN-dark-blue:#042B45 !default;
 $ETN-indigo:#3D49A6 !default;
 $ETN-purlple: #7E3487 !default;
@@ -18,7 +19,7 @@ $ETN-additional-font: #fff;
 
 
 // footer
-$footer-background-color: $ETN-dark-blue; //Footer background color
+$footer-background-color: $ETN-dark; //Footer background color
 $footer-title-color: #fff;
 $footer-text-color: #fff;
 $footer-item-disc-color: $ETN-blue;
@@ -48,27 +49,27 @@ $dashboard-banner-network-plain-container-background-color: lighten($dashboard-b
 
 // navigation
 .navbar { box-shadow: 0px 0px 30px 0px rgba(21, 53, 80, 0.12); } // header shadow
-$dropdown-menu-item-hover-color: $ETN-dark-blue !default;
+$dropdown-menu-item-hover-color: $ETN-blue !default;
 $dropdown-menu-item-hover-background: rgba($dropdown-menu-item-hover-color, .1) !default; 
-$header-icon-color-hover: $ETN-dark-blue !default;
-$header-icon-border-color-hover: $ETN-dark-blue !default;
+$header-icon-color-hover: $ETN-blue !default;
+$header-icon-border-color-hover: $ETN-blue !default;
 
 // buttons
 $btn-line-bg: $ETN-additional-font; // button bg
-$btn-line-color: $ETN-dark-blue; // button border and font color && hover bg color
-$btn-copy-color: $ETN-dark-blue; // btn copy
-$btn-qr-color: $ETN-dark-blue; // btn qr-code
-$btn-address-card-icon-color: $ETN-dark-blue; // btn address color
+$btn-line-color: $ETN-blue; // button border and font color && hover bg color
+$btn-copy-color: $ETN-blue; // btn copy
+$btn-qr-color: $ETN-blue; // btn qr-code
+$btn-address-card-icon-color: $ETN-blue; // btn address color
 
 //links & tile
-$tile-body-a-color: $ETN-dark-blue;
-$tile-type-block-color: $ETN-dark-blue;
-$tile-type-progress-bar-color: $ETN-dark-blue;
-a.tile-title { color: $ETN-dark-blue !important; }
+$tile-body-a-color: $ETN-blue;
+$tile-type-block-color: $ETN-blue;
+$tile-type-progress-bar-color: $ETN-blue;
+a.tile-title { color: $ETN-blue !important; }
 
 // card
 $card-background-1: $primary;
-$card-tab-active: $ETN-indigo;
+$card-tab-active: $ETN-blue;
 
 .layout-container {
 	.dashboard-banner-container {
@@ -82,13 +83,13 @@ $card-tab-active: $ETN-indigo;
 
 //Pagination
 .pagination-container .pagination .page-item.active .page-link{
-	background-color: $ETN-dark-blue;
-	border-color: $ETN-dark-blue;
+	background-color: $ETN-blue;
+	border-color: $ETN-blue;
 }
 
 .pagination-container .pagination .page-link:not(.no-hover):hover {
-    background-color: $ETN-dark-blue;
-    border: 1px solid $ETN-dark-blue;
+    background-color: $ETN-blue;
+    border: 1px solid $ETN-blue;
     color: #fff;
 }
 
@@ -100,7 +101,7 @@ $api-text-monospace-color: $primary;
 // Tokens dropdown
 .token-balance-dropdown[aria-labelledby="dropdown-tokens"] {
   .dropdown-items .dropdown-item:hover {
-	color: $ETN-dark-blue !important;
+	color: $ETN-blue !important;
   }
 }
 
