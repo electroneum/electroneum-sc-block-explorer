@@ -1,6 +1,6 @@
 # BlockScout
 
-This is a tool for inspecting and analyzing the POA Network blockchain.
+This is a tool for inspecting and analyzing the Electroneum Network blockchain.
 
 
 ## Machine Requirements

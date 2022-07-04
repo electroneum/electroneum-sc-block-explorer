@@ -1,6 +1,6 @@
-defmodule Explorer.ChainSpec.POA.Importer do
+defmodule Explorer.ChainSpec.Electroneum.Importer do
   @moduledoc """
-  Imports emission reward range for POA chain.
+  Imports emission reward range for Electroneum chain.
   """
 
   require Logger

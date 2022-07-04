@@ -1,7 +1,7 @@
 // Default variables
 $header-background-color: #fff !default;
 $header-links-color: #828ba0 !default;
-$header-links-color-active: #333 !default;
+$header-links-color-active: $ETN-blue !default;
 $header-icon-color: $header-links-color !default;
 $header-icon-color-hover: $secondary !default;
 $header-icon-border-color-hover: $secondary !default;
@@ -10,7 +10,7 @@ $header-textfield-text-color: $header-links-color !default;
 $header-textfield-background-color: #f5f6fa !default;
 $header-textfield-magnifier-color: $header-links-color !default;
 $header-link-horizontal-padding: 0.71rem;
-$navbar-logo-height: 28px !default;
+$navbar-logo-height: 35px !default;
 $navbar-logo-width: auto !default;
 
 .navbar.navbar-primary {
@@ -65,7 +65,7 @@ $navbar-logo-width: auto !default;
         color: $header-links-color-active;
         .nav-link-icon {
           path {
-            fill: $header-icon-color-hover;
+            fill: $ETN-blue; //ETN Icon navbar hover
           }
         }
       }

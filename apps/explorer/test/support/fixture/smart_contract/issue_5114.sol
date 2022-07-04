@@ -190,7 +190,7 @@ library Address {
      *
      * Requirements:
      *
-     * - the calling contract must have an ETH balance of at least `value`.
+     * - the calling contract must have an ETN balance of at least `value`.
      * - the called Solidity function must be `payable`.
      *
      * _Available since v3.1._

@@ -67,7 +67,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/chain/_metatags.html.eex:2
-msgid "%{subnetwork} %{network} Explorer"
+msgid "%{subnetwork} Block Explorer"
 msgstr ""
 
 #, elixir-format
@@ -105,7 +105,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/block/overview.html.eex:195
-msgid "64-bit hash of value verifying proof-of-work (note: null for POA chains)."
+msgid "64-bit hash of value verifying proof-of-work (note: null for Electroneum chains)."
 msgstr ""
 
 #, elixir-format
@@ -266,7 +266,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/block/overview.html.eex:236
-msgid "Amount of distributed reward. Miners receive a static block reward + Tx fees + uncle fees."
+msgid "Amount of distributed reward. Validators receive a static block reward + Tx fees + uncle fees."
 msgstr ""
 
 #, elixir-format
@@ -388,7 +388,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/block/overview.html.eex:158
-msgid "Block difficulty for miner, used to calibrate block generation time (Note: constant in POA based networks)."
+msgid "Block difficulty for miner, used to calibrate block generation time (Note: constant in Electroneum based networks)."
 msgstr ""
 
 #, elixir-format
@@ -436,12 +436,12 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/layout/_footer.html.eex:22
-msgid "Blockscout is a tool for inspecting and analyzing EVM based blockchains. Blockchain explorer for Ethereum Networks."
+msgid "Blockscout is a tool for inspecting and analyzing EVM based blockchains. Blockchain explorer for Electroneum Networks."
 msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/stakes/_stakes_top.html.eex:45
-msgid "Bridge STAKE to Ethereum"
+msgid "Bridge STAKE to Electroneum"
 msgstr ""
 
 #, elixir-format
@@ -456,7 +456,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/layout/_topnav.html.eex:78
-msgid "Bridged from Ethereum"
+msgid "Bridged from Electroneum"
 msgstr ""
 
 #, elixir-format
@@ -1020,15 +1020,8 @@ msgid "ERC-721 "
 msgstr ""
 
 #, elixir-format
-#: lib/block_scout_web/templates/address_token/overview.html.eex:1
-#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:104 lib/block_scout_web/templates/smart_contract/_functions.html.eex:104
-#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:146
-msgid "ETH"
-msgstr ""
-
-#, elixir-format
 #: lib/block_scout_web/templates/api_docs/eth_rpc.html.eex:4
-msgid "ETH RPC API Documentation"
+msgid "ETN RPC API Documentation"
 msgstr ""
 
 #, elixir-format
@@ -1105,7 +1098,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/layout/_topnav.html.eex:138
-msgid "Eth RPC"
+msgid "ETN RPC"
 msgstr ""
 
 #, elixir-format
@@ -1116,7 +1109,11 @@ msgstr ""
 #: lib/block_scout_web/templates/layout/app.html.eex:51 lib/block_scout_web/templates/transaction/_pending_tile.html.eex:20
 #: lib/block_scout_web/templates/transaction/_tile.html.eex:43 lib/block_scout_web/templates/transaction/overview.html.eex:411
 #: lib/block_scout_web/views/wei_helpers.ex:78
-msgid "Ether"
+#, elixir-format
+#: lib/block_scout_web/templates/address_token/overview.html.eex:1
+#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:104 lib/block_scout_web/templates/smart_contract/_functions.html.eex:104
+#: lib/block_scout_web/templates/smart_contract/_functions.html.eex:146
+msgid "ETN"
 msgstr ""
 
 #, elixir-format
@@ -1563,13 +1560,13 @@ msgstr ""
 #, elixir-format
 #: lib/block_scout_web/templates/block/_tile.html.eex:41
 #: lib/block_scout_web/templates/block/overview.html.eex:98 lib/block_scout_web/templates/chain/_block.html.eex:16
-msgid "Miner"
+msgid "Validator"
 msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/views/block_view.ex:61
 #: lib/block_scout_web/views/block_view.ex:66
-msgid "Miner Reward"
+msgid "Validator Reward"
 msgstr ""
 
 #, elixir-format
@@ -2308,7 +2305,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/smart_contract/_functions.html.eex:41
-msgid "The fallback function is executed on a call to the contract if none of the other functions match the given function signature, or if no data was supplied at all and there is no receive Ether function. The fallback function always receives data, but in order to also receive Ether it must be marked payable."
+msgid "The fallback function is executed on a call to the contract if none of the other functions match the given function signature, or if no data was supplied at all and there is no receive ETN function. The fallback function always receives data, but in order to also receive ETN it must be marked payable."
 msgstr ""
 
 #, elixir-format
@@ -2358,7 +2355,7 @@ msgstr ""
 
 #, elixir-format
 #: lib/block_scout_web/templates/smart_contract/_functions.html.eex:43
-msgid "The receive function is executed on a call to the contract with empty calldata. This is the function that is executed on plain Ether transfers (e.g. via .send() or .transfer()). If no such function exists, but a payable fallback function exists, the fallback function will be called on a plain Ether transfer. If neither a receive Ether nor a payable fallback function is present, the contract cannot receive Ether through regular transactions and throws an exception."
+msgid "The receive function is executed on a call to the contract with empty calldata. This is the function that is executed on plain ETN transfers (e.g. via .send() or .transfer()). If no such function exists, but a payable fallback function exists, the fallback function will be called on a plain ETN transfer. If neither a receive ETN nor a payable fallback function is present, the contract cannot receive ETN through regular transactions and throws an exception."
 msgstr ""
 
 #, elixir-format

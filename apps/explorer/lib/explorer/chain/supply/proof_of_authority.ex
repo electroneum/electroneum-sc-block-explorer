@@ -1,15 +1,15 @@
 defmodule Explorer.Chain.Supply.ProofOfAuthority do
   @moduledoc """
-  Defines the supply API for calculating supply for POA.
+  Defines the supply API for calculating supply for Electroneum.
 
-  POA launched on Dec 15, 2017 with 252,460,800 coins with 20% reserved for
+  Electroneum launched on Dec 15, 2017 with 252,460,800 coins with 20% reserved for
   vesting (50,492,160). After 6 months from launch, 25% of the vested amount,
   or 12,623,040, will be unlocked and included in the circulating supply.
   Every 3 months after that, 12.5% of the vested amount, or 6,311,520, will
   be unlocked until the remaining vested portion is unlocked.
 
 
-  See https://github.com/poanetwork/wiki/wiki/POA-Token-Supply for more
+  See https://github.com/poanetwork/wiki/wiki/Electroneum-Token-Supply for more
   information.
   """
   use Explorer.Chain.Supply

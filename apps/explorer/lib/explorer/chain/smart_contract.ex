@@ -3,7 +3,7 @@ defmodule Explorer.Chain.SmartContract do
   The representation of a verified Smart Contract.
 
   "A contract in the sense of Solidity is a collection of code (its functions)
-  and data (its state) that resides at a specific address on the Ethereum
+  and data (its state) that resides at a specific address on the Electroneum
   blockchain."
   http://solidity.readthedocs.io/en/v0.4.24/introduction-to-smart-contracts.html
   """
@@ -131,9 +131,9 @@ defmodule Explorer.Chain.SmartContract do
   @typedoc """
   * `"pure"` - [specified to not read blockchain state](https://solidity.readthedocs.io/en/develop/contracts.html#pure-functions).
   * `"view"` - [specified to not modify the blockchain state](https://solidity.readthedocs.io/en/develop/contracts.html#view-functions).
-  * `"nonpayable"` - function does not accept Ether.
-    **NOTE**: Sending non-zero Ether to non-payable function will revert the transaction.
-  * `"payable"` - function accepts Ether.
+  * `"nonpayable"` - function does not accept ETN.
+    **NOTE**: Sending non-zero ETN to non-payable function will revert the transaction.
+  * `"payable"` - function accepts ETN.
   """
   @type state_mutability :: String.t()
 

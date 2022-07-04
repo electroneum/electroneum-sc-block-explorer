@@ -1,6 +1,6 @@
 defmodule EthereumJSONRPC do
   @moduledoc """
-  Ethereum JSONRPC client.
+  Electroneum JSONRPC client.
 
   ## Configuration
 

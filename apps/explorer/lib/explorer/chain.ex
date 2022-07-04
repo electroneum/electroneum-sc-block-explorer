@@ -3725,7 +3725,7 @@ defmodule Explorer.Chain do
   ## Returns
 
     * `:pending` - the transaction has not be confirmed in a block yet.
-    * `:awaiting_internal_transactions` - the transaction happened in a pre-Byzantium block or on a chain like Ethereum
+    * `:awaiting_internal_transactions` - the transaction happened in a pre-Byzantium block or on a chain like Electroneum
       Classic (ETC) that never adopted [EIP-658](https://github.com/Arachnid/EIPs/blob/master/EIPS/eip-658.md), which
       add transaction status to transaction receipts, so the status can only be derived whether the first internal
       transaction has an error.

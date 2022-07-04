@@ -23,7 +23,7 @@ defmodule Explorer.ExchangeRates.Source.CoinGeckoTest do
     {
       "id": "poa-network",
       "symbol": "poa",
-      "name": "POA Network"
+      "name": "Electroneum Network"
     },
     {
       "id": "poc-chain",
@@ -38,7 +38,7 @@ defmodule Explorer.ExchangeRates.Source.CoinGeckoTest do
     {
     "id": "ethereum",
     "symbol": "eth",
-    "name": "Ethereum"
+    "name": "Electroneum"
     },
     {
       "id": "rootstock",
@@ -84,8 +84,8 @@ defmodule Explorer.ExchangeRates.Source.CoinGeckoTest do
           id: "poa-network",
           last_updated: ~U[2019-08-21 08:36:49.371Z],
           market_cap_usd: Decimal.new("2962791"),
-          name: "POA Network",
-          symbol: "POA",
+          name: "Electroneum Network",
+          symbol: "Electroneum",
           usd_value: Decimal.new("0.01345698"),
           volume_24h_usd: Decimal.new("119946")
         }
@@ -109,7 +109,7 @@ defmodule Explorer.ExchangeRates.Source.CoinGeckoTest do
       Application.put_env(:explorer, CoinGecko, base_url: "http://localhost:#{bypass.port}")
 
       on_exit(fn ->
-        Application.put_env(:explorer, :coin, "POA")
+        Application.put_env(:explorer, :coin, "Electroneum")
       end)
 
       {:ok, bypass: bypass}
@@ -124,7 +124,7 @@ defmodule Explorer.ExchangeRates.Source.CoinGeckoTest do
     end
 
     test "fetches eth coin id", %{bypass: bypass} do
-      Application.put_env(:explorer, :coin, "ETH")
+      Application.put_env(:explorer, :coin, "ETN")
 
       Bypass.expect(bypass, "GET", "/coins/list", fn conn ->
         Conn.resp(conn, 200, @coins_list)

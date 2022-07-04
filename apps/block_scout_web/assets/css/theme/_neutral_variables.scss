@@ -1,56 +1,75 @@
-// general
-$primary: #5c34a2;
+// general ETN variables
+$primary: #2bb2f4;
 $secondary: #87e1a9;
 $tertiary: #bf9cff;
 $additional-font: #fff;
 
+$ETN-blue:#2bb2f4 !default;
+$ETN-dark: #0d3548 !default;
+$ETN-dark-blue:#042B45 !default;
+$ETN-indigo:#3D49A6 !default;
+$ETN-purlple: #7E3487 !default;
+$ETN-burgundy:#7B003D !default;
+$ETN-pink:#E71984 !default;
+$ETN-light-pink:#FC3BBA !default;
+$ETN-lilac: #bbbdbb !default;
+$ETN-red: #F50A56 !default;
+$ETN-turquoise: #00AEAE !default;
+$ETN-additional-font: #fff;
+
+
 // footer
-$footer-background-color: #3c226a;
+$footer-background-color: $ETN-dark; //Footer background color
 $footer-title-color: #fff;
-$footer-text-color: #bda6e7;
-$footer-item-disc-color: $secondary;
+$footer-text-color: #fff;
+$footer-item-disc-color: $ETN-blue;
 .footer-logo { filter: brightness(0) invert(1); }
 
-// dashboard
-$dashboard-line-color-price: $tertiary; // price left border
+.footer-link:hover {
+    color: $ETN-blue !important;
+}
 
-$dashboard-banner-chart-legend-label-color: #dcc8ff;
+
+// dashboard
+$dashboard-line-color-price: $tertiary;// price left border
+
+$dashboard-banner-chart-legend-label-color: $ETN-additional-font;
 $dashboard-stats-item-label-color: $dashboard-banner-chart-legend-label-color;
-$dashboard-banner-chart-legend-value-color: #fff; // chart labels
-$dashboard-stats-item-value-color: #fff; // stat values
+$dashboard-banner-chart-legend-value-color: $ETN-additional-font; // chart labels
+$dashboard-stats-item-value-color: $ETN-additional-font; // stat values
 
 $dashboard-stats-item-border-color: $secondary; // stat border
 
-$dashboard-banner-gradient-start: $primary; // gradient begin
+$dashboard-banner-gradient-start: $ETN-dark-blue; // ETN Dashboard color start
 
-$dashboard-banner-gradient-end: lighten($primary, 5); // gradient end
+$dashboard-banner-gradient-end: lighten($dashboard-banner-gradient-start, 5); // ETN Dashboard color end
 
-$dashboard-banner-network-plain-container-background-color: #8258cd; // stats bg
+$dashboard-banner-network-plain-container-background-color: lighten($dashboard-banner-gradient-end,5);  //ETN Dashboard netowrk stats
 
 
 // navigation
 .navbar { box-shadow: 0px 0px 30px 0px rgba(21, 53, 80, 0.12); } // header shadow
-$dropdown-menu-item-hover-color: $primary !default;
-$dropdown-menu-item-hover-background: rgba($primary, .1) !default;
-$header-icon-color-hover: $primary;
-$header-icon-border-color-hover: $primary;
+$dropdown-menu-item-hover-color: $ETN-blue !default;
+$dropdown-menu-item-hover-background: rgba($dropdown-menu-item-hover-color, .1) !default; 
+$header-icon-color-hover: $ETN-blue !default;
+$header-icon-border-color-hover: $ETN-blue !default;
 
 // buttons
-$btn-line-bg: #fff; // button bg
-$btn-line-color: $primary; // button border and font color && hover bg color
-$btn-copy-color: $primary; // btn copy
-$btn-qr-color: $primary; // btn qr-code
-$btn-address-card-icon-color: $primary; // btn address color
+$btn-line-bg: $ETN-additional-font; // button bg
+$btn-line-color: $ETN-blue; // button border and font color && hover bg color
+$btn-copy-color: $ETN-blue; // btn copy
+$btn-qr-color: $ETN-blue; // btn qr-code
+$btn-address-card-icon-color: $ETN-blue; // btn address color
 
 //links & tile
-$tile-body-a-color: $primary;
-$tile-type-block-color: $primary;
-$tile-type-progress-bar-color: $primary;
-a.tile-title { color: $primary !important; }
+$tile-body-a-color: $ETN-blue;
+$tile-type-block-color: $ETN-blue;
+$tile-type-progress-bar-color: $ETN-blue;
+a.tile-title { color: $ETN-blue !important; }
 
 // card
 $card-background-1: $primary;
-$card-tab-active: $primary;
+$card-tab-active: $ETN-blue;
 
 .layout-container {
 	.dashboard-banner-container {
@@ -62,6 +81,18 @@ $card-tab-active: $primary;
 	}
 }
 
+//Pagination
+.pagination-container .pagination .page-item.active .page-link{
+	background-color: $ETN-blue;
+	border-color: $ETN-blue;
+}
+
+.pagination-container .pagination .page-link:not(.no-hover):hover {
+    background-color: $ETN-blue;
+    border: 1px solid $ETN-blue;
+    color: #fff;
+}
+
 // Badges
 $badge-neutral-color: $primary;
 $badge-neutral-background-color: rgba($primary, .1);
@@ -70,7 +101,7 @@ $api-text-monospace-color: $primary;
 // Tokens dropdown
 .token-balance-dropdown[aria-labelledby="dropdown-tokens"] {
   .dropdown-items .dropdown-item:hover {
-    color: $primary !important;
+	color: $ETN-blue !important;
   }
 }
 

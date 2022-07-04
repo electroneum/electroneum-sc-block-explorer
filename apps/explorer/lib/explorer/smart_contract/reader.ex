@@ -3,7 +3,7 @@ defmodule Explorer.SmartContract.Reader do
   Reads Smart Contract functions from the blockchain.
 
   For information on smart contract's Application Binary Interface (ABI), visit the
-  [wiki](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI).
+  [wiki](https://github.com/ethereum/wiki/wiki/Electroneum-Contract-ABI).
   """
 
   alias EthereumJSONRPC.{Contract, Encoder}
@@ -22,7 +22,7 @@ defmodule Explorer.SmartContract.Reader do
   @type functions_results :: %{String.t() => Contract.call_result()}
 
   @typedoc """
-  Options that can be forwarded when calling the Ethereum JSON RPC.
+  Options that can be forwarded when calling the Electroneum JSON RPC.
 
   ## Optional
 
@@ -104,7 +104,7 @@ defmodule Explorer.SmartContract.Reader do
 
   ## Options
 
-  * `:json_rpc_named_arguments` - Options to forward for calling the Ethereum JSON RPC. See
+  * `:json_rpc_named_arguments` - Options to forward for calling the Electroneum JSON RPC. See
     `t:EthereumJSONRPC.json_rpc_named_arguments.t/0` for full list of options.
   """
   @spec query_contract(
@@ -167,7 +167,7 @@ defmodule Explorer.SmartContract.Reader do
 
   ## Options
 
-  * `:json_rpc_named_arguments` - Options to forward for calling the Ethereum JSON RPC. See
+  * `:json_rpc_named_arguments` - Options to forward for calling the Electroneum JSON RPC. See
     `t:EthereumJSONRPC.json_rpc_named_arguments.t/0` for full list of options.
   """
   @spec query_contracts([Contract.call()], term(), contract_call_options()) :: [Contract.call_result()]
