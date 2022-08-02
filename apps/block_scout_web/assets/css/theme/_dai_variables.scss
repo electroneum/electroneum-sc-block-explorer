@@ -3,7 +3,6 @@ $primary: #133629;
 $secondary: #3E6957;
 $tertiary: #93d7ff;
 $additional-font: #fff;
-$indigo: #3D49A6;
 
 // footer
 $footer-background-color: $primary;
@@ -24,9 +23,9 @@ $dashboard-stats-item-value-color: #fff; // stat values
 
 $dashboard-stats-item-border-color: $secondary; // stat border
 
-$dashboard-banner-gradient-start: $dark-primary; // gradient begin
+$dashboard-banner-gradient-start: $primary; // gradient begin
 
-$dashboard-banner-gradient-end: darken($dashboard-banner-gradient-start,5%); // gradient end
+$dashboard-banner-gradient-end: $secondary; // gradient end
 
 $dashboard-banner-network-plain-container-background-color: $secondary; // stats bg
 
@@ -49,29 +48,29 @@ $btn-address-card-icon-color: $secondary; // btn address color
 $btn-contract-color: $secondary;
 
 //links & tile
-$tile-body-a-color: $dark-primary;
-$tile-type-block-color: $dark-primary;
-$tile-type-progress-bar-color: $dark-primary;
+$tile-body-a-color: $secondary;
+$tile-type-block-color: $secondary;
+$tile-type-progress-bar-color: $secondary;
 
 a {
-  color: $dark-primary;
+  color: $secondary;
 }
 
 a:hover, a:focus {
-  color: $dark-primary;
+  color: $secondary;
 }
 
 .tile .tile-body a,
 .tile a:hover,
 .tile span[data-address-hash],
 .tile a[data-test=token_link]
-a.tile-title { color: $dark-primary !important; }
+a.tile-title { color: $secondary !important; }
 .card-body {  
   a:not(.dropdown-item):not(.button):not([data-test=address_hash_link]):not(.alert-link):not(#dropdown-tokens):not(.btn-line):not(.page-link):not(.active) {
-    color: $dark-primary;
+    color: $secondary;
 
     &:hover {
-      color: $dark-primary;
+      color: $secondary;
     }
   }
 }
@@ -95,7 +94,7 @@ $card-tab-active: $secondary;
 
 .layout-container {
   .dashboard-banner-container {
-    background-color: $dark-primary !important;
+    background-color: $primary !important;
     background-image: linear-gradient(
       to bottom,
       $dashboard-banner-gradient-start,
@@ -152,32 +151,32 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
   }
 
   .tile.tile-type-block {
-		border-left-color: $indigo !important;
+		border-left-color: $secondary !important;
 	}
 
   a {
-    color: $indigo;
+    color: $labels-dark;
   }
 
   a:hover, a:focus {
-    color: $indigo;
+    color: $labels-dark;
   }
 
   a.ad-url {
-    color: $indigo!important;
+    color: $labels-dark !important;
   }
 
   .btn-line {
     background-color: transparent !important;
-    border-color: $indigo!important;
-    color: $indigo !important;
+    border-color: $labels-dark !important;
+    color: $labels-dark !important;
 
     &[disabled] {
         &,
         &:hover {
             background-color: transparent !important;
-            border-color: $indigo !important;
-            color: $indigo !important;
+            border-color: $labels-dark !important;
+            color: $labels-dark !important;
         }
     }
   }
@@ -187,26 +186,26 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
   }
 
   .btn-no-border-link-to-tems {
-    border-color: $indigo !important;
-    color: $indigo !important;
+    border-color: $labels-dark !important;
+    color: $labels-dark !important;
   }
 
   .btn-copy-icon, .btn-qr-icon, .btn-address-card-icon {
-		border-color: $indigo !important;
+		border-color: $labels-dark !important;
 		path {
-			fill: $indigo !important;
+			fill: $labels-dark !important;
 		}
 		&:hover {
-			background-color: $indigo !important;
+			background-color: $labels-dark !important;
 			path {
-				fill: $indigo !important;
+				fill: $body-dark !important;
 			}
 		}
     &.btn-copy-icon-small {
       &:hover {
         background-color: transparent !important;
         path {
-          fill: $indigo!important;
+          fill: $labels-dark !important;
         }
       }
     }
@@ -214,24 +213,24 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 
   .btn-wallet-icon, .btn-contract-icon {
     background-color: transparent !important;
-    border-color: $indigo !important;
-    color: $indigo !important;
+    border-color: $labels-dark !important;
+    color: $labels-dark !important;
 
     &:hover {
-      background-color: $indigo !important;
-      border-color: $indigo !important;
-      color: $indigo !important;
+      background-color: $labels-dark !important;
+      border-color: $body-dark !important;
+      color: $body-dark !important;
     }
   }
 
   .btn-contract-icon {
     path {
-      fill: $indigo !important;
+      fill: $labels-dark !important;
     }
 
     &:hover {
 			path {
-				fill: $indigo !important;
+				fill: $body-dark !important;
 			}
 		}
   }
@@ -246,10 +245,10 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 
   .card-body {  
     a:not(.dropdown-item):not(.button):not(.alert-link):not(#dropdown-tokens):not(.btn-line):not(.page-link) {
-        color: $indigo !important;
+      color: $labels-dark !important;
 
-        &:hover {
-            color: $indigo !important;
+      &:hover {
+          color: $labels-dark !important;
         }
     }
   }
@@ -278,6 +277,6 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 		color: $labels-dark !important;
 	}
   .footer-list ul li::before {
-    background-color: $primary !important;
+    background-color: $secondary !important;
   }
 }

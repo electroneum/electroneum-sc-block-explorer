@@ -1,5 +1,5 @@
-$common-link-color: $dark-primary !default;
-$blue: $dark-primary !default;
+$common-link-color: $ETN-blue!default;
+$blue: #4b89fb !default;
 $success: #34c0ad !default;
 
 body {
@@ -53,7 +53,7 @@ a {
 
   &:hover,
   &:focus {
-    color: darken($common-link-color, 20%);
+    color: darken($ETN-blue, 20%); // ETN Link hover underline color
     text-decoration: underline;
   }
 

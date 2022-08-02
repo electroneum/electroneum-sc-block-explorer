@@ -38,52 +38,69 @@ $grays: map-merge(
   $grays
 );
 
-$blue: #4FE8D6 !default;
-$dark-blue: #042B45 !default;
-$indigo: #3D49A6 !default;
-$purple: #7E3487 !default;
-$burgundy: #7B003D !default;
-$pink: #E71984 !default;
-$light-pink: #FC3BBA !default;
-$lilac: #bbbdbb !default;
-$red: #F50A56 !default;
-$orange: #E9643A !default;
-$yellow: #FFDE00 !default;
-$green: #007349 !default;
-$teal: #26764E !default;
+$blue: #4786ff !default;	
+$indigo: #5b389f !default;	
+$purple: #997fdc !default;	
+$pink: #e83e8c !default;
+$lilac: #b38dc9 !default;	
+$red: #c74d39 !default;	
+$orange: #ef9a60 !default;	
+$yellow: #ffc107 !default;	
+$green: #20b760 !default;	
+$teal: #009097 !default;
 $cyan: #90e1d8 !default;
-$turquoise: #00AEAE !default;
+$dark-purple: #923dc3 !default;
+
+$ETN-blue:#2bb2f4 !default;
+$ETN-dark-blue:#042B45 !default;
+$ETN-dark: #0d3548 !default;
+$ETN-indigo:#3D49A6 !default;
+$ETN-purlple: #7E3487 !default;
+$ETN-burgundy:#7B003D !default;
+$ETN-pink:#E71984 !default;
+$ETN-light-pink:#FC3BBA !default;
+$ETN-lilac: #bbbdbb !default;
+$ETN-red: #F50A56 !default;
+$ETN-turquoise: #00AEAE !default;
 
 $colors: () !default;
 $colors: map-merge(
   (
     "blue": $blue,
-    "dark-blue": $dark-blue,
     "indigo": $indigo,
     "purple": $purple,
-    "burgundy": $burgundy,
     "pink": $pink,
-    "light-pink": $light-pink,
-    "lilac": $lilac,
     "red": $red,
     "orange": $orange,
     "yellow": $yellow,
     "green": $green,
     "teal": $teal,
     "cyan": $cyan,
-    "turquoise": $turquoise,
+    "dark-purple": $dark-purple,
+    "ETN-blue": $ETN-blue,
+    "ETN-dark-blue": $ETN-dark-blue,
+    "ETN-dark": $ETN-dark,
+    "ETN-indigo": $ETN-indigo,
+    "ETN-purlple": $ETN-purlple,
+    "ETN-burgundy": $ETN-burgundy,
+    "ETN-pink": $ETN-pink,
+    "ETN-light-pink": $ETN-light-pink,
+    "ETN-lilac": $ETN-lilac,
+    "ETN-red": $ETN-red,
+    "ETN-turquoise": $ETN-turquoise,
     "white": $white,
     "gray": $gray-600,
-    "gray-dark": $gray-800
+    "gray-dark": $gray-800,
+
   ),
   $colors
 );
 
-$primary: $blue !default;
-$dark-primary: $dark-blue!default;
-$dark-primary-alternate: $dark-blue !default;
-$secondary: $turquoise!default;
-$dark-secondary: $teal !default;
+$primary: $ETN-blue !default;
+$dark-primary: #9b62ff !default;
+$dark-primary-alternate: #9b62ff !default;
+$secondary: #7dd79f !default;
+$dark-secondary: #87e1a9 !default;
 $tertiary: $purple !default;
 $success: $green !default;
 $info: $cyan !default;
