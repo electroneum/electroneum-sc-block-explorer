@@ -17,23 +17,12 @@
       <ul class="navbar-nav">
         <%= if Application.get_env(:block_scout_web, BlockScoutWeb.WebRouter)[:enabled] do %>
           <li class="nav-item dropdown">
-            <a class="nav-link topnav-nav-link dropdown-toggle" href="#" id="navbarBlocksDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link topnav-nav-link" href="/blocks" id="navbarBlocksDropdown" role="button" aria-haspopup="true" aria-expanded="false">           
               <span class="nav-link-icon">
                 <%= render BlockScoutWeb.IconsView, "_block_icon.html" %>
               </span>
               <%= gettext("Blocks") %>
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarBlocksDropdown">
-              <%= link to: blocks_path(@conn, :index), class: "dropdown-item #{tab_status("blocks", @conn.request_path)}" do %>
-                <%= gettext("Blocks") %>
-              <% end %>
-              <%= link to: uncle_path(@conn, :uncle), class: "dropdown-item #{tab_status("uncles", @conn.request_path)}" do %>
-                <%= gettext("Uncles") %>
-              <% end %>
-              <%= link to: reorg_path(@conn, :reorg), class: "dropdown-item #{tab_status("reorgs", @conn.request_path)}" do %>
-                <%= gettext("Forked Blocks (Reorgs)") %>
-              <% end %>
-            </div>
           </li>
           <li class="nav-item dropdown" id="activeTransactions">
             <a href="#" role="button" id="navbarTransactionsDropdown" class="nav-link topnav-nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -75,7 +64,7 @@
                       to: tokens_path(@conn, :index)
                     ) %>
                 <%= link(
-                      gettext("Bridged from Ethereum"),
+                      gettext("Bridged from Electroneum"),
                       class: "dropdown-item #{tab_status("bridged-tokens/eth", @conn.request_path)}",
                       to: bridged_tokens_path(@conn, :show, :eth),
                       style: "white-space: nowrap;"
@@ -86,7 +75,7 @@
                       to: bridged_tokens_path(@conn, :show, :bsc)
                     ) %>
                 <%= link(
-                      gettext("Ether"),
+                      gettext("ETN"),
                       class: "dropdown-item #{tab_status("accounts", @conn.request_path)}",
                       to: address_path(@conn, :index)
                     ) %>
@@ -107,7 +96,7 @@
                       to: tokens_path(@conn, :index)
                     ) %>
                 <%= link(
-                      gettext("Ether"),
+                      gettext("ETN"),
                       class: "dropdown-item #{tab_status("accounts", @conn.request_path)}",
                       to: address_path(@conn, :index)
                     ) %>
@@ -135,7 +124,7 @@
                     to: api_url() <> api_docs_path(@conn, :index)
                   ) %>
               <%= link(
-                    gettext("Eth RPC"),
+                    gettext("ETN RPC"),
                     class: "dropdown-item #{tab_status("eth-rpc-api-docs", @conn.request_path)}",
                     to: api_url() <> api_docs_path(@conn, :eth_rpc)
                   ) %>
