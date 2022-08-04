@@ -181,10 +181,10 @@
             <%= subnetwork_title() %>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item header division">Electroneum - SC</a>
+            <a class="dropdown-item header division">Electroneum-SC</a>
               <a class="dropdown-item" href="#">Mainnet</a>
               <a class="dropdown-item" href="http://testnet-scblockexplorer.electroneum.com/">Testnet</a>
-            <a class="dropdown-item header division">Electroneum (legacy)</a>
+            <a class="dropdown-item header division">Electroneum (Legacy)</a>
               <a class="dropdown-item" href="https://blockexplorer.electroneum.com/">Mainnet</a>
               <a class="dropdown-item" href="#">Testnet</a>
           </div>
