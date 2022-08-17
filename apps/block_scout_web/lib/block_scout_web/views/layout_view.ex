@@ -56,6 +56,22 @@ defmodule BlockScoutWeb.LayoutView do
     Keyword.get(application_config(), :network) || "Electroneum"
   end
 
+  def etn_sc_mainnet do
+    Keyword.get(application_config(), :etn_sc_mainnet) || "Electroneum"
+  end
+
+  def etn_sc_testnet do
+    Keyword.get(application_config(), :etn_sc_testnet) || "Electroneum"
+  end
+
+  def etn_legacy_mainnet do
+    Keyword.get(application_config(), :etn_legacy_mainnet) || "Electroneum"
+  end
+
+  def etn_legacy_testnet do
+    Keyword.get(application_config(), :etn_legacy_testnet) || "Electroneum"
+  end
+
   defp application_config do
     Application.get_env(:block_scout_web, BlockScoutWeb.Chain)
   end
