@@ -173,6 +173,7 @@
             <a class="dropdown-item header division">Electroneum-SC</a>
               <a class="dropdown-item" href=<%= etn_sc_mainnet() %>>Mainnet</a>
               <a class="dropdown-item" href=<%= etn_sc_testnet() %>>Testnet</a>
+              <a class="dropdown-item" href=<%= etn_sc_stagenet() %>>Stagenet</a>
             <a class="dropdown-item header division">Electroneum (Legacy)</a>
               <a class="dropdown-item" href=<%= etn_legacy_mainnet() %>>Mainnet</a>
               <a class="dropdown-item" href=<%= etn_legacy_testnet() %>>Testnet</a>

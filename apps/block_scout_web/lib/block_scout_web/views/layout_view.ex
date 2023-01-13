@@ -64,6 +64,10 @@ defmodule BlockScoutWeb.LayoutView do
     Keyword.get(application_config(), :etn_sc_testnet) || "Electroneum"
   end
 
+  def etn_sc_stagenet do
+    Keyword.get(application_config(), :etn_sc_stagenet) || "Electroneum"
+  end
+
   def etn_legacy_mainnet do
     Keyword.get(application_config(), :etn_legacy_mainnet) || "Electroneum"
   end
@@ -183,6 +187,11 @@ defmodule BlockScoutWeb.LayoutView do
     |> Enum.filter(&Map.get(&1, :test_net?))
   end
 
+  def stage_nets(nets) do
+    nets
+    |> Enum.filter(&Map.get(&1, :stage_net?))
+  end
+
   def dropdown_nets do
     other_networks()
     |> Enum.reject(&Map.get(&1, :hide_in_dropdown?))
@@ -196,6 +205,11 @@ defmodule BlockScoutWeb.LayoutView do
   def dropdown_test_nets do
     dropdown_nets()
     |> test_nets()
+  end
+
+  def dropdown_stage_nets do
+    dropdown_nets()
+    |> stage_nets()
   end
 
   def dropdown_head_main_nets do

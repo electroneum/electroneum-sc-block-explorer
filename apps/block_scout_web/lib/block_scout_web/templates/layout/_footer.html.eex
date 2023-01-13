@@ -67,6 +67,19 @@
         </div>
       <% end %>
 
+      <% stage_nets = stage_nets(other_networks()) %>
+
+      <%= unless Enum.empty?(stage_nets) do %>
+      <div class="col-xs-12 col-md-4 col-lg-<%= col_size %> footer-list">
+        <h3><%= gettext("Staging Networks") %></h3>
+        <ul>
+          <%= for %{title: title, url: url} <- stage_nets do %>
+          <li><a href="<%= url %>" rel="noreferrer" class="footer-link"> <%= title %> </a></li>
+          <% end %>
+        </ul>
+      </div>
+      <% end %>
+
       <%= unless Enum.empty?(other_explorers) do %>
         <div class="col-xs-12 col-md-4 col-lg-<%= col_size %> footer-list">
           <h3><%= gettext("Other Explorers") %></h3>
