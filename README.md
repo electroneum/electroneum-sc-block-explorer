@@ -1,30 +1,20 @@
-<h1 align="center">BlockScout</h1>
-<p align="center">Blockchain Explorer for inspecting and analyzing EVM Chains.</p>
+<h1 align="center">Electroneum Smartchain Block Explorer</h1>
+<p align="center">Blockchain Explorer for inspecting and analyzing the Electroneum Smart Chain.</p>
 <div align="center">
 
-[![Blockscout](https://github.com/blockscout/blockscout/workflows/Blockscout/badge.svg?branch=master)](https://github.com/blockscout/blockscout/actions) 
+[![Smartchain Explorer](https://github.com/electroneum/electroneum-sc-block-explorer/workflows/Blockscout/badge.svg?branch=master)](https://github.com/electroneum/electroneum-sc-blockexplorer/actions) 
 
 </div>
 
-BlockScout provides a comprehensive, easy-to-use interface for users to view, confirm, and inspect transactions on EVM (Electroneum Virtual Machine) blockchains. This includes the Electroneum Network, Gnosis Chain, Electroneum Classic and other **Electroneum testnets, private networks and sidechains**.
+The Electroneum Smartchain Explorer provides a comprehensive, easy-to-use interface for users to view, confirm, and inspect transactions on the Electroneum Smartchain, the respective testnet, or any private versions of the Electroneum network that you might create for your own testing purposes.
 
-See our [project documentation](https://docs.blockscout.com/) for detailed information and setup instructions.
-
-For questions, comments and feature requests see the [discussions section](https://github.com/blockscout/blockscout/discussions).
+Please see the parent project (Blockscout) [documentation](https://docs.blockscout.com/) for detailed information and setup instructions, and for related questions, comments and feature requests see the [discussions section](https://github.com/blockscout/blockscout/discussions).
 
 ## About BlockScout
 
 BlockScout is an Elixir application that allows users to search transactions, view accounts and balances, and verify smart contracts on the Electroneum network including all forks and sidechains.
 
 Currently available full-featured block explorers (Etherscan, Etherchain, Blockchair) are closed systems which are not independently verifiable.  As Electroneum sidechains continue to proliferate in both private and public settings, transparent, open-source tools are needed to analyze and validate transactions.
-
-## Supported Projects
-
-BlockScout supports a number of projects. Hosted instances include Electroneum Network, Gnosis Chain, Electroneum Classic, Sokol & Kovan testnets, and other EVM chains. 
-
-- [List of hosted mainnets, testnets, and additional chains using BlockScout](https://docs.blockscout.com/for-projects/supported-projects)
-- [Hosted instance versions](https://docs.blockscout.com/about/use-cases/hosted-blockscout)
-
 
 ## Getting Started
 
@@ -34,7 +24,6 @@ See the [project documentation](https://docs.blockscout.com/) for instructions:
 - [Manual deployment](https://docs.blockscout.com/for-developers/manual-deployment)
 - [ENV variables](https://docs.blockscout.com/for-developers/information-and-settings/env-variables)
 - [Configuration options](https://docs.blockscout.com/for-developers/configuration-options)
-
 
 ## Acknowledgements
 
