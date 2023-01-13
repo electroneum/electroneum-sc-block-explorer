@@ -21,17 +21,22 @@
                 <div class="network-selector-tab js-network-selector-tab active" network-selector-tab-filter="all"><%= gettext("All") %></div>
                 <div class="network-selector-tab js-network-selector-tab" network-selector-tab-filter="mainnet"><%= gettext("Mainnet") %></div>
                 <div class="network-selector-tab js-network-selector-tab" network-selector-tab-filter="testnet"><%= gettext("Testnet") %></div>
+                <div class="network-selector-tab js-network-selector-tab" network-selector-tab-filter="stagenet"><%= gettext("Stagenet") %></div>
                 <div class="network-selector-tab js-network-selector-tab" network-selector-tab-filter="favorites"><%= gettext("Favorites") %></div>
             </div>
             <div class="network-selector-networks-container">
                 <% main_nets = dropdown_main_nets() %>
                 <% test_nets = dropdown_test_nets() %>
+                <% stage_nets = dropdown_test_nets() %>
                 <div class="network-selector-tab-content js-network-selector-tab-content active" network-selector-tab="all">
                     <%= for %{url: url, title: title} <- main_nets do %>
                         <%= render BlockScoutWeb.LayoutView, "_network_selector_item.html", title: title, url: url, tab_type: "Mainnet" %>
                     <% end %>
                     <%= for %{url: url, title: title} <- test_nets do %>
                         <%= render BlockScoutWeb.LayoutView, "_network_selector_item.html", title: title, url: url, tab_type: "Testnet" %>
+                    <% end %>
+                    <%= for %{url: url, title: title} <- stage_nets do %>
+                    <%= render BlockScoutWeb.LayoutView, "_network_selector_item.html", title: title, url: url, tab_type: "Stagenet" %>
                     <% end %>
                 </div>
                 <div class="network-selector-tab-content js-network-selector-tab-content" network-selector-tab="mainnet">

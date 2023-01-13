@@ -10,25 +10,25 @@ defmodule Explorer.EthRPC do
   alias Explorer.Etherscan.{Blocks, Logs, RPC}
 
   @methods %{
-    "ETN_blockNumber" => %{
+    "eth_blockNumber" => %{
       action: :ETN_block_number,
       notes: nil,
       example: """
-      {"id": 0, "jsonrpc": "2.0", "method": "ETN_blockNumber", "params": []}
+      {"id": 0, "jsonrpc": "2.0", "method": "eth_blockNumber", "params": []}
       """,
       params: [],
       result: """
       {"id": 0, "jsonrpc": "2.0", "result": "0xb3415c"}
       """
     },
-    "ETN_getBalance" => %{
+    "eth_getBalance" => %{
       action: :ETN_get_balance,
       notes: """
       The `earliest` parameter will not work as expected currently, because genesis block balances
       are not currently imported
       """,
       example: """
-      {"id": 0, "jsonrpc": "2.0", "method": "ETN_getBalance", "params": ["0x0000000000000000000000000000000000000007", "latest"]}
+      {"id": 0, "jsonrpc": "2.0", "method": "eth_getBalance", "params": ["0x0000000000000000000000000000000000000007", "latest"]}
       """,
       params: [
         %{
@@ -50,14 +50,14 @@ defmodule Explorer.EthRPC do
       {"id": 0, "jsonrpc": "2.0", "result": "0x0234c8a3397aab58"}
       """
     },
-    "ETN_getLogs" => %{
+    "eth_getLogs" => %{
       action: :ETN_get_logs,
       notes: """
       Will never return more than 1000 log entries.\n
       For this reason, you can use pagination options to request the next page. Pagination options params: {"logIndex": "3D", "blockNumber": "6423AC", "transactionIndex": 53} which include parameters from the last log received from the previous request. These three parameters are required for pagination.
       """,
       example: """
-      {"id": 0, "jsonrpc": "2.0", "method": "ETN_getLogs",
+      {"id": 0, "jsonrpc": "2.0", "method": "eth_getLogs",
        "params": [
         {"address": "0xc78Be425090Dbd437532594D12267C5934Cc6c6f",
          "paging_options": {"logIndex": "3D", "blockNumber": "6423AC", "transactionIndex": 53},
