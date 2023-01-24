@@ -16,6 +16,7 @@ defmodule BlockScout.Mixfile do
         credo: :test,
         dialyzer: :test
       ],
+      elixirc_options: [debug_info: Mix.env() == :dev],
       # start_permanent: config_env() == :prod,
       releases: [
         blockscout: [

@@ -60,6 +60,23 @@ config :logger, :error,
     ~w(application fetcher request_id first_block_number last_block_number missing_block_range_count missing_block_count
        block_number step count error_count shrunk import_id transaction_id)a
 
+config :block_scout_web, BlockScoutWeb.Endpoint,
+  http: [port: 4000],
+  https: [
+    port: 4001,
+    cipher_suite: :strong,
+    certfile: "priv/cert/selfsigned.pem",
+    keyfile: "priv/cert/selfsigned_key.pem"
+  ]
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
+
+config :block_scout_web, BlockScoutWeb.Endpoint,
+http: [port: 4000],
+https: [
+  port: 4001,
+  cipher_suite: :strong,
+  certfile: "priv/cert/selfsigned.pem",
+  keyfile: "priv/cert/selfsigned_key.pem"
+]

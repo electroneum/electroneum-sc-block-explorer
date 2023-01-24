@@ -96,6 +96,13 @@ config :block_scout_web, BlockScoutWeb.Counters.BlocksIndexedCounter, enabled: t
 
 # Configures the endpoint
 config :block_scout_web, BlockScoutWeb.Endpoint,
+    http: [port: 4000],
+    https: [
+      port: 4001,
+      cipher_suite: :strong,
+      certfile: "priv/cert/selfsigned.pem",
+      keyfile: "priv/cert/selfsigned_key.pem"
+    ],
   url: [
     scheme: System.get_env("BLOCKSCOUT_PROTOCOL") || "http",
     host: System.get_env("BLOCKSCOUT_HOST") || "localhost",
