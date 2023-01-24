@@ -1,6 +1,6 @@
 defmodule EthereumJSONRPC.Arbitrum do
   @moduledoc """
-  Ethereum JSONRPC methods that are only supported by [Arbitrum L2]https://github.com/OffchainLabs/arbitrum).
+  Electroneum JSONRPC methods that are only supported by [Arbitrum L2]https://github.com/OffchainLabs/arbitrum).
   """
 
   @behaviour EthereumJSONRPC.Variant

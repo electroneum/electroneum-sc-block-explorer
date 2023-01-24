@@ -38,9 +38,9 @@
       <%= counter %>.
       <%= case function["type"] do %>
         <% "fallback" -> %>
-          <%= gettext "fallback" %><%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html", text: gettext("The fallback function is executed on a call to the contract if none of the other functions match the given function signature, or if no data was supplied at all and there is no receive Ether function. The fallback function always receives data, but in order to also receive Ether it must be marked payable.") %>
+          <%= gettext "fallback" %><%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html", text: gettext("The fallback function is executed on a call to the contract if none of the other functions match the given function signature, or if no data was supplied at all and there is no receive ETN function. The fallback function always receives data, but in order to also receive ETN it must be marked payable.") %>
         <% "receive" -> %>
-          <%= gettext "receive" %><%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html", text: gettext("The receive function is executed on a call to the contract with empty calldata. This is the function that is executed on plain Ether transfers (e.g. via .send() or .transfer()). If no such function exists, but a payable fallback function exists, the fallback function will be called on a plain Ether transfer. If neither a receive Ether nor a payable fallback function is present, the contract cannot receive Ether through regular transactions and throws an exception.") %>
+          <%= gettext "receive" %><%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html", text: gettext("The receive function is executed on a call to the contract with empty calldata. This is the function that is executed on plain ETN transfers (e.g. via .send() or .transfer()). If no such function exists, but a payable fallback function exists, the fallback function will be called on a plain ETN transfer. If neither a receive ETN nor a payable fallback function is present, the contract cannot receive ETN through regular transactions and throws an exception.") %>
         <% _ -> %>
           <%= function["name"] %>
       <% end %>
@@ -101,7 +101,7 @@
           <%= if Helper.payable?(function) do %>
             <div class="form-group pr-3 d-flex">
               <input type="number" name="function_input" tx-value
-              data-toggle="tooltip" title='Amount in native token <<%= gettext("ETH")%>>' class="form-control form-control-sm address-input-sm" placeholder='value(<%= gettext("ETH")%>)' min="0" step="1e-18" />
+              data-toggle="tooltip" title='Amount in native token <<%= gettext("ETN")%>>' class="form-control form-control-sm address-input-sm" placeholder='value(<%= gettext("ETN")%>)' min="0" step="1e-18" />
             </div>
           <% end %>
 
@@ -143,7 +143,7 @@
                       <span class="py-2 px-2">
                         <input class="wei-ether" type="checkbox" autocomplete="off">
                         <span class="d-inline-block" data-conversion-text-wei><%= gettext("WEI")%></span>
-                        <span class="d-none" data-conversion-text-eth><%= gettext("ETH")%></span>
+                        <span class="d-none" data-conversion-text-eth><%= gettext("ETN")%></span>
                       </span>
                     </div>
                   </div> 

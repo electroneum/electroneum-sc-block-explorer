@@ -1,6 +1,6 @@
 defmodule Explorer.EthRPC do
   @moduledoc """
-  Ethereum JSON RPC methods logic implementation.
+  Electroneum JSON RPC methods logic implementation.
   """
 
   alias Ecto.Type, as: EctoType
@@ -11,7 +11,7 @@ defmodule Explorer.EthRPC do
 
   @methods %{
     "eth_blockNumber" => %{
-      action: :eth_block_number,
+      action: :ETN_block_number,
       notes: nil,
       example: """
       {"id": 0, "jsonrpc": "2.0", "method": "eth_blockNumber", "params": []}
@@ -22,7 +22,7 @@ defmodule Explorer.EthRPC do
       """
     },
     "eth_getBalance" => %{
-      action: :eth_get_balance,
+      action: :ETN_get_balance,
       notes: """
       The `earliest` parameter will not work as expected currently, because genesis block balances
       are not currently imported
@@ -51,7 +51,7 @@ defmodule Explorer.EthRPC do
       """
     },
     "eth_getLogs" => %{
-      action: :eth_get_logs,
+      action: :ETN_get_logs,
       notes: """
       Will never return more than 1000 log entries.\n
       For this reason, you can use pagination options to request the next page. Pagination options params: {"logIndex": "3D", "blockNumber": "6423AC", "transactionIndex": 53} which include parameters from the last log received from the previous request. These three parameters are required for pagination.

@@ -18,7 +18,7 @@ defmodule BlockScoutWeb.BridgedTokensController do
   def show(conn, %{"id" => "eth"}) do
     render(conn, "index.html",
       current_path: Controller.current_full_path(conn),
-      chain: "Ethereum",
+      chain: "Electroneum",
       chain_id: 1,
       destination: :eth
     )
@@ -44,7 +44,7 @@ defmodule BlockScoutWeb.BridgedTokensController do
   def index(conn, _params) do
     render(conn, "index.html",
       current_path: Controller.current_full_path(conn),
-      chain: "Ethereum",
+      chain: "Electroneum",
       chain_id: 1,
       destination: :eth
     )

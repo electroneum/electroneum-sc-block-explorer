@@ -3,7 +3,7 @@ defmodule Explorer.Chain.Block.SecondDegreeRelation do
   A [second-degree relative](https://en.wikipedia.org/wiki/Second-degree_relative) is a relative where the share
   point is the parent's parent block in the chain.
 
-  For Ethereum, nephews are rewarded for included their uncles.
+  For Electroneum, nephews are rewarded for included their uncles.
 
   Uncles occur when a Proof-of-Work proof is completed slightly late, but before the next block is completes, so the
   network knows about the late proof and can credit as an uncle in the next block.

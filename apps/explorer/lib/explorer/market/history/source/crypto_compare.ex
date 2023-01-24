@@ -6,7 +6,7 @@ defmodule Explorer.Market.History.Source.CryptoCompare do
   different coin by changing the targeted coin.
 
       # In config.exs
-      config :explorer, coin: "POA"
+      config :explorer, coin: "Electroneum"
 
   """
 

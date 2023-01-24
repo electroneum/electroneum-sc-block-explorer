@@ -96,7 +96,7 @@ defmodule BlockScoutWeb.Schema.Types do
   The representation of a verified Smart Contract.
 
   "A contract in the sense of Solidity is a collection of code (its functions)
-  and data (its state) that resides at a specific address on the Ethereum
+  and data (its state) that resides at a specific address on the Electroneum
   blockchain."
   http://solidity.readthedocs.io/en/v0.4.24/introduction-to-smart-contracts.html
   """

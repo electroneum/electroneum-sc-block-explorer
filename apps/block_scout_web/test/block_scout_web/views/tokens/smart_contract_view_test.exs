@@ -119,7 +119,7 @@ defmodule BlockScoutWeb.Tokens.SmartContractViewTest do
     end
 
     test "returns true when there is name" do
-      arguments = %{"name" => "POA"}
+      arguments = %{"name" => "Electroneum"}
 
       assert SmartContractView.named_argument?(arguments)
     end

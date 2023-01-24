@@ -106,7 +106,7 @@
 - [#5480](https://github.com/blockscout/blockscout/pull/5480) - Remove duplicate of balances_params_to_address_params function
 - [#5473](https://github.com/blockscout/blockscout/pull/5473) - Refactor daily coin balances fetcher
 - [#5458](https://github.com/blockscout/blockscout/pull/5458) - Decrease min safe polling period for realtime fetcher
-- [#5456](https://github.com/blockscout/blockscout/pull/5456) - Ignore arbitrary block details fields for custom Ethereum clients
+- [#5456](https://github.com/blockscout/blockscout/pull/5456) - Ignore arbitrary block details fields for custom Electroneum clients
 - [#5450](https://github.com/blockscout/blockscout/pull/5450) - Logging error in publishing of smart-contract
 - [#5433](https://github.com/blockscout/blockscout/pull/5433) - Caching modules refactoring
 - [#5419](https://github.com/blockscout/blockscout/pull/5419) - Add check if address exists for some api methods
@@ -1110,7 +1110,7 @@ fixed menu hovers in dark mode desktop view
 - [#2636](https://github.com/blockscout/blockscout/pull/2636) - Execute all address' transactions page queries in parallel
 - [#2596](https://github.com/blockscout/blockscout/pull/2596) - support AuRa's empty step reward type
 - [#2588](https://github.com/blockscout/blockscout/pull/2588) - add verification submission comment
-- [#2505](https://github.com/blockscout/blockscout/pull/2505) - support POA Network emission rewards
+- [#2505](https://github.com/blockscout/blockscout/pull/2505) - support Electroneum Network emission rewards
 - [#2581](https://github.com/blockscout/blockscout/pull/2581) - Add generic Map-like Cache behaviour and implementation
 - [#2561](https://github.com/blockscout/blockscout/pull/2561) - Add token's type to the response of tokenlist method
 - [#2555](https://github.com/blockscout/blockscout/pull/2555) - find and show decoding candidates for logs
@@ -1380,7 +1380,7 @@ fixed menu hovers in dark mode desktop view
 - [#1974](https://github.com/blockscout/blockscout/pull/1974) - feat: previous page button logic
 - [#1999](https://github.com/blockscout/blockscout/pull/1999) - load data async on addresses page
 - [#1807](https://github.com/blockscout/blockscout/pull/1807) - New theming capabilites.
-- [#2040](https://github.com/blockscout/blockscout/pull/2040) - Verification links to other explorers for ETH
+- [#2040](https://github.com/blockscout/blockscout/pull/2040) - Verification links to other explorers for ETN
 - [#2037](https://github.com/blockscout/blockscout/pull/2037) - add address logs search functionality
 - [#2012](https://github.com/blockscout/blockscout/pull/2012) - make all pages pagination async
 - [#2064](https://github.com/blockscout/blockscout/pull/2064) - feat: add fields to tx apis, small cleanups
@@ -1548,7 +1548,7 @@ Reverting of synchronous block counter, implemented in #1848
  - [#1783](https://github.com/blockscout/blockscout/pull/1783) - Update README with the chains that use Blockscout
  - [#1780](https://github.com/blockscout/blockscout/pull/1780) - Update link to the Github repo in the footer
  - [#1757](https://github.com/blockscout/blockscout/pull/1757) - Change twitter acc link to official Blockscout acc twitter
- - [#1749](https://github.com/blockscout/blockscout/pull/1749) - Replace the link in the footer with the official POA announcements tg channel link
+ - [#1749](https://github.com/blockscout/blockscout/pull/1749) - Replace the link in the footer with the official Electroneum announcements tg channel link
  - [#1718](https://github.com/blockscout/blockscout/pull/1718) - Flatten indexer module hierarchy and supervisor tree
  - [#1753](https://github.com/blockscout/blockscout/pull/1753) - Add a check mark to decompiled contract tab
  - [#1744](https://github.com/blockscout/blockscout/pull/1744) - remove `0x0..0` from tests

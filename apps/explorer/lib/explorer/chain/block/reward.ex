@@ -89,7 +89,7 @@ defmodule Explorer.Chain.Block.Reward do
   end
 
   @doc """
-  Returns a list of tuples representing rewards by the EmissionFunds on POA chains.
+  Returns a list of tuples representing rewards by the EmissionFunds on Electroneum chains.
   The tuples have the format {EmissionFunds, Validator}
   """
   def fetch_emission_rewards_tuples(address_hash, paging_options, %{

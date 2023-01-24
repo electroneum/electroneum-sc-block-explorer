@@ -5,7 +5,7 @@
   },
   "private": true,
   "name": "blockscout",
-  "author": "POA Network",
+  "author": "Electroneum Network",
   "license": "GPL-3.0",
   "engines": {
     "node": "16.x",

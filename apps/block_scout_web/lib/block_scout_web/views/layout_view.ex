@@ -7,10 +7,10 @@ defmodule BlockScoutWeb.LayoutView do
 
   import BlockScoutWeb.AddressView, only: [from_address_hash: 1]
 
-  @issue_url "https://github.com/blockscout/blockscout/issues/new"
+  @issue_url "https://github.com/electroneum/electroneum-sc-block-explorer/issues/new"
   @default_other_networks [
     %{
-      title: "POA",
+      title: "Electroneum",
       url: "https://blockscout.com/poa/core"
     },
     %{
@@ -23,7 +23,7 @@ defmodule BlockScoutWeb.LayoutView do
       url: "https://blockscout.com/xdai/mainnet"
     },
     %{
-      title: "Ethereum Classic",
+      title: "Electroneum Classic",
       url: "https://blockscout.com/etc/mainnet",
       other?: true
     },
@@ -53,7 +53,27 @@ defmodule BlockScoutWeb.LayoutView do
   end
 
   def network_title do
-    Keyword.get(application_config(), :network) || "POA"
+    Keyword.get(application_config(), :network) || "Electroneum"
+  end
+
+  def etn_sc_mainnet do
+    Keyword.get(application_config(), :etn_sc_mainnet) || "Electroneum"
+  end
+
+  def etn_sc_testnet do
+    Keyword.get(application_config(), :etn_sc_testnet) || "Electroneum"
+  end
+
+  def etn_sc_stagenet do
+    Keyword.get(application_config(), :etn_sc_stagenet) || "Electroneum"
+  end
+
+  def etn_legacy_mainnet do
+    Keyword.get(application_config(), :etn_legacy_mainnet) || "Electroneum"
+  end
+
+  def etn_legacy_testnet do
+    Keyword.get(application_config(), :etn_legacy_testnet) || "Electroneum"
   end
 
   defp application_config do
@@ -66,7 +86,7 @@ defmodule BlockScoutWeb.LayoutView do
 
   def issue_link(conn) do
     params = [
-      labels: "BlockScout",
+      labels: "Electroneum Block Explorer",
       body: issue_body(conn),
       title: subnetwork_title() <> ": <Issue Title>"
     ]
@@ -88,7 +108,7 @@ defmodule BlockScoutWeb.LayoutView do
     ### Environment
     * Elixir Version: #{System.version()}
     * Erlang Version: #{System.otp_release()}
-    * BlockScout Version: #{version()}
+    * Explorer Version: #{version()}
 
     * User Agent: `#{user_agent}`
 
@@ -167,6 +187,11 @@ defmodule BlockScoutWeb.LayoutView do
     |> Enum.filter(&Map.get(&1, :test_net?))
   end
 
+  def stage_nets(nets) do
+    nets
+    |> Enum.filter(&Map.get(&1, :stage_net?))
+  end
+
   def dropdown_nets do
     other_networks()
     |> Enum.reject(&Map.get(&1, :hide_in_dropdown?))
@@ -180,6 +205,11 @@ defmodule BlockScoutWeb.LayoutView do
   def dropdown_test_nets do
     dropdown_nets()
     |> test_nets()
+  end
+
+  def dropdown_stage_nets do
+    dropdown_nets()
+    |> stage_nets()
   end
 
   def dropdown_head_main_nets do

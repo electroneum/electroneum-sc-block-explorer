@@ -21,7 +21,7 @@ defmodule Indexer.Block.Catchup.FetcherTest do
   setup :verify_on_exit!
 
   setup do
-    # Uncle don't occur on POA chains, so there's no way to test this using the public addresses, so mox-only testing
+    # Uncle don't occur on Electroneum chains, so there's no way to test this using the public addresses, so mox-only testing
     %{
       json_rpc_named_arguments: [
         transport: EthereumJSONRPC.Mox,

@@ -23,7 +23,7 @@ defmodule BlockScoutWeb.ChainControllerTest do
     test "returns a welcome message", %{conn: conn} do
       conn = get(conn, chain_path(BlockScoutWeb.Endpoint, :show))
 
-      assert(html_response(conn, 200) =~ "POA")
+      assert(html_response(conn, 200) =~ "Electroneum")
     end
 
     test "returns a block" do
@@ -54,7 +54,7 @@ defmodule BlockScoutWeb.ChainControllerTest do
     end
 
     test "displays miner primary address names" do
-      miner_name = "POA Miner Pool"
+      miner_name = "Electroneum Validator Pool"
       %{address: miner_address} = insert(:address_name, name: miner_name, primary: true)
 
       insert(:block, miner: miner_address, miner_hash: nil)

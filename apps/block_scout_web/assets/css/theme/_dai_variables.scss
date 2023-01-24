@@ -245,10 +245,10 @@ $dashboard-line-color-transactions-dark-theme: $secondary;
 
   .card-body {  
     a:not(.dropdown-item):not(.button):not(.alert-link):not(#dropdown-tokens):not(.btn-line):not(.page-link) {
-        color: $labels-dark !important;
+      color: $labels-dark !important;
 
-        &:hover {
-            color: $labels-dark !important;
+      &:hover {
+          color: $labels-dark !important;
         }
     }
   }
