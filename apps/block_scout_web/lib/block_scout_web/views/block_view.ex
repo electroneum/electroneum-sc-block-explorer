@@ -50,7 +50,7 @@ defmodule BlockScoutWeb.BlockView do
     Timex.format!(timestamp, "%b-%d-%Y %H:%M:%S %p %Z", :strftime)
   end
 
-  def show_reward?([]), do: false
+  def show_reward?([]), do: true
   def show_reward?(_), do: true
 
   def block_reward_text(%Reward{address_hash: beneficiary_address, address_type: :validator}, block_miner_address) do

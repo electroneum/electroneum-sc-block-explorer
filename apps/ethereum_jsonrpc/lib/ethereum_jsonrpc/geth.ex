@@ -6,7 +6,7 @@ defmodule EthereumJSONRPC.Geth do
   import EthereumJSONRPC, only: [id_to_params: 1, integer_to_quantity: 1, json_rpc: 2, request: 1]
 
   alias EthereumJSONRPC.{FetchedBalance, FetchedCode, Transactions}
-  alias EthereumJSONRPC.Geth.{Calls, Tracer}
+  alias EthereumJSONRPC.Geth.{Calls, Tracer, FetchedBeneficiaries}
 
   @behaviour EthereumJSONRPC.Variant
 
@@ -17,6 +17,21 @@ defmodule EthereumJSONRPC.Geth do
   """
   @impl EthereumJSONRPC.Variant
   def fetch_beneficiaries(_block_range, _json_rpc_named_arguments), do: :ignore
+
+#   def fetch_beneficiaries(block_numbers, json_rpc_named_arguments)
+#     when is_list(block_numbers) and is_list(json_rpc_named_arguments) do
+#   id_to_params =
+#     block_numbers
+#     |> block_numbers_to_params_list()
+#     |> id_to_params()
+
+#   with {:ok, responses} <-
+#         id_to_params
+#         |> FetchedBeneficiaries.requests()
+#         |> json_rpc(json_rpc_named_arguments) do
+#     {:ok, FetchedBeneficiaries.from_responses(responses, id_to_params)}
+#   end
+# end
 
   @doc """
   Fetches the `t:Explorer.Chain.InternalTransaction.changeset/2` params.
@@ -87,6 +102,10 @@ defmodule EthereumJSONRPC.Geth do
   @tracer_path "priv/js/ethereum_jsonrpc/geth/debug_traceTransaction/tracer.js"
   @external_resource @tracer_path
   @tracer File.read!(@tracer_path)
+
+  defp block_numbers_to_params_list(block_numbers) when is_list(block_numbers) do
+    Enum.map(block_numbers, &%{block_quantity: integer_to_quantity(&1)})
+  end
 
   defp debug_trace_transaction_request(%{id: id, hash_data: hash_data}) do
     debug_trace_transaction_timeout =
