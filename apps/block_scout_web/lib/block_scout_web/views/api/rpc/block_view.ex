@@ -38,6 +38,16 @@ defmodule BlockScoutWeb.API.RPC.BlockView do
     EthRPCView.render("show.json", %{result: result, id: id})
   end
 
+
+  def render("block_validators.json", %{block: block, validators: validators}) do
+    data = %{
+      "blockNumber" => to_string(block.number),
+      "blockMiner" => Hash.to_string(block.miner_hash),
+      "blockValidators" => to_string(validators),
+    }
+    RPCView.render("show.json", data: data)
+  end
+
   def render("error.json", %{error: error}) do
     RPCView.render("error.json", error: error)
   end

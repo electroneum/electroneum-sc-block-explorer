@@ -57,4 +57,26 @@ defmodule BlockScoutWeb.API.RPC.BlockController do
 
     render(conn, :eth_block_number, number: max_block_number, id: id)
   end
+
+  def getblockvalidator(conn, params) do
+    with {:block_param, {:ok, unsafe_block_number}} <- {:block_param, Map.fetch(params, "blockno")},
+         {:ok, block_number} <- ChainWeb.param_to_block_number(unsafe_block_number),
+         {:ok, block} <- Chain.number_to_block(block_number) do
+      params = %{block_number: block_number}
+      body =
+        %{
+          jsonrpc: "2.0",
+          id: "1",
+          method: "istanbul_getSignersFromBlock",
+          params: [params]
+        }
+        |> Poison.encode!()
+
+      url = "http://localhost:8545/"
+      headers = [{"Content-type", "application/json"}]
+      validators = HTTPoison.post!(url, body, headers, [])
+      IO.inspect(validators)
+      render(conn, :block_validators, block: block, validators: validators)
+    end
+  end
 end

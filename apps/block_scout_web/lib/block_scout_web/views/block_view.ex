@@ -7,7 +7,6 @@ defmodule BlockScoutWeb.BlockView do
   alias Explorer.Chain.{Block, Wei}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Counters.{BlockBurnedFeeCounter, BlockPriorityFeeCounter}
-  alias BlockScoutWeb.BlockController
 
   @dialyzer :no_match
 
@@ -82,8 +81,8 @@ defmodule BlockScoutWeb.BlockView do
     |> format_wei_value(:ether)
   end
 
-  def block_validator(block) do
-    block
-    |> BlockController.getblockvalidator()
+  def block_validators_text(block) do
+    gettext("(%{count}) ", count: block.validators)
   end
+
 end

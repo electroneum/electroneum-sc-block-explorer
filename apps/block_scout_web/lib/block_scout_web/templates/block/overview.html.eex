@@ -241,22 +241,16 @@
             <% end %>
           <% end %>
           <!--Validators -->
-          <%= if System.get_env("HIDE_BLOCK_MINER") !== "true" do %>
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
                 <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
                 text: gettext("Block's validators array") %>
                 <%= gettext("Validators") %>
               </dt>
-              <dd class="col-sm-9 col-lg-10"><%= render BlockScoutWeb.AddressView, "_link.html", address: @block.miner, contract: false, class: "", use_custom_tooltip: false, show_full_hash: true %>
-                <%= render BlockScoutWeb.CommonComponentsView, "_btn_copy.html",
-                  additional_classes: ["btn-copy-icon-small", "btn-copy-icon-custom", "btn-copy-icon-no-borders"],
-                  clipboard_text: @block.miner,
-                  aria_label: gettext("Copy Address"),
-                  title: gettext("Copy Address") %>
-                </dd>
+              <dd class="col-sm-9 col-lg-10"><%= block_validators_text(@block.validators)%>          
+              </dd>
             </dl>
-          <% end %>
+
           <%= if block_type(@block) == "Block" do %>
             <%= if length(@block.uncle_relations) > 0 do %>
 
