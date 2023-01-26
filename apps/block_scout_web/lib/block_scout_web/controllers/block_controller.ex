@@ -6,6 +6,7 @@ defmodule BlockScoutWeb.BlockController do
   alias BlockScoutWeb.{BlockView, Controller}
   alias Explorer.Chain
   alias Phoenix.View
+  alias
 
   def index(conn, params) do
     case params["block_type"] do
@@ -112,5 +113,19 @@ defmodule BlockScoutWeb.BlockController do
       current_path: Controller.current_full_path(conn),
       block_type: Keyword.get(full_options, :block_type, "Block")
     )
+  end
+
+  def getblockvalidator(conn, params) do
+    body = %{
+      jsonrpc: "2.0",
+      id: "1",
+      method: "istanbul_getSignersFromBlock",
+      params: [params]
+     }|> Poison.encode!()
+    url = "http://localhost:8545/"
+    headers = [{"Content-type", "application/json"}]
+    validators = HTTPoison.post!(url, body, headers, [])
+    IO.inspect(validators)
+    render(conn, validators: validators)
   end
 end

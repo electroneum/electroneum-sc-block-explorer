@@ -86,3 +86,12 @@ config :logger, :api,
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
+
+config :block_scout_web, BlockScoutWeb.Endpoint,
+    http: [port: 4000],
+    https: [
+      port: 4001,
+      cipher_suite: :strong,
+      certfile: "priv/cert/selfsigned.pem",
+      keyfile: "priv/cert/selfsigned_key.pem"
+    ]
