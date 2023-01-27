@@ -59,10 +59,29 @@ defmodule BlockScoutWeb.API.RPC.BlockController do
   end
 
   def getblockvalidator(conn, params) do
+    #
+    #Returns the list of validators for a given block number. Example: request for block number 0x83542
+    #{
+    #  "jsonrpc": "2.0",
+    #  "id": "1",
+    #  "result": {
+    #     "Number": 537922,
+    #      "Hash": "0x1adb13896264427aeb302648944d7750d31aeb89293f7d898b24523fc543e8a6",
+    #      "Author": "0xff0d56bd960c455a71f908496c79e8eafec34ccf",
+    #      "Committers": [
+    #          "0xc21ee98b5a90a6a45aba37fa5eddf90f5e8e1816",
+    #          "0x97f060952b1008c75cb030e3599725ad5cc306a2",
+    #          "0x07afbe0d7d36b80454be1e185f55e02b9453625a",
+    #          "0x4f9a82d7e094de7fb70d9ce2033ec0d65ac31124"
+    #      ]
+    #    }
+    #}
+    #
+
     with {:block_param, {:ok, unsafe_block_number}} <- {:block_param, Map.fetch(params, "blockno")},
          {:ok, block_number} <- ChainWeb.param_to_block_number(unsafe_block_number),
          {:ok, block} <- Chain.number_to_block(block_number) do
-      params = %{block_number: block_number}
+      params = block_number
       body =
         %{
           jsonrpc: "2.0",

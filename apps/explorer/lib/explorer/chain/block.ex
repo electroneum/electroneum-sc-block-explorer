@@ -65,7 +65,8 @@ defmodule Explorer.Chain.Block do
           transactions: %Ecto.Association.NotLoaded{} | [Transaction.t()],
           refetch_needed: boolean(),
           base_fee_per_gas: Wei.t(),
-          is_empty: boolean()
+          is_empty: boolean(),
+          validators: %Ecto.Association.NotLoaded{} | [Address.t()]
         }
 
   @primary_key {:hash, Hash.Full, autogenerate: false}
@@ -82,6 +83,7 @@ defmodule Explorer.Chain.Block do
     field(:refetch_needed, :boolean)
     field(:base_fee_per_gas, Wei)
     field(:is_empty, :boolean)
+    field(:validators, {:array, Hash.Address})
 
     timestamps()
 
