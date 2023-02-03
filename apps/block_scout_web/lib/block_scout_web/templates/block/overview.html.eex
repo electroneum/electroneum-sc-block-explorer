@@ -243,11 +243,11 @@
           <!--Validators -->
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
-                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                <%= render BlockScoutWeb.API.RPC.BlockView,
                 text: gettext("Block's validators array") %>
                 <%= gettext("Validators") %>
               </dt>
-              <dd class="col-sm-9 col-lg-10"><%= block_validators_text(@block.validators)%>          
+              <dd class="col-sm-9 col-lg-10"><%= block_validators_text(@block.validators)%>
               </dd>
             </dl>
 
