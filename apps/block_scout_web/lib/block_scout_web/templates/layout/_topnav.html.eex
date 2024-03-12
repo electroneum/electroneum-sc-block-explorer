@@ -151,6 +151,9 @@
                 </a>
               <% end %>
               <%= if apps_menu == true do %>
+                <div class="dropdown-item" style="pointer-events: none;">
+                  Apps in this section are from third party developers. Do your own due diligence before using.
+                </div>
                 <%= for %{url: url, title: title} <- external_apps_list() do %>
                     <a href="<%= url %>" class="dropdown-item" target="_blank"><%= title %>
                       <span class="external-link-icon">
