@@ -4,7 +4,26 @@ import Config
 config :logger, :console, level: :info
 
 config :logger, :ecto,
-  level: :debug,
-  path: Path.absname("logs/dev/ecto.log")
+       level: :debug,
+       path: Path.absname("logs/dev/ecto.log")
 
 config :logger, :error, path: Path.absname("logs/dev/error.log")
+
+# Phoenix Endpoint Configuration for Hot Code Reloading
+config :block_scout_web, BlockScoutWeb.Endpoint,
+       http: [ip: {0, 0, 0, 0}, port: 4000],
+       code_reloader: true,
+       debug_errors: true,
+       check_origin: false,
+       watchers: [
+         # Recompile assets with Webpack when files change
+         node: [
+           "node_modules/webpack/bin/webpack.js",
+           "--mode",
+           "development",
+           "--watch",
+           "--watch-options-stdin",
+           cd: Path.expand("../apps/block_scout_web/assets", __DIR__)
+         ]
+       ],
+       https: false
