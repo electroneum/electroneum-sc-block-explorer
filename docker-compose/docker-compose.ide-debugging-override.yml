@@ -10,7 +10,7 @@ services:
     volumes:
       - ../apps:/opt/app/apps # Map the local Blockscout codebase into the container
       - ../config:/opt/app/config # If you also want to tweak config files
-      - ../envs:/envs # Map the env files for easier editing
+      - ./envs:/envs # Map the env files for easier editing
     command: 'mix do ecto.create, ecto.migrate, phx.server'
     ports:
       - 4000:4000 # Phoenix app

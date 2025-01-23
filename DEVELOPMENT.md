@@ -46,11 +46,11 @@ Run the application with the override file for live updates and debugging:
 cd /path/to/electroneum-sc-block-explorer && \
 docker build --no-cache -t explorer --build-arg MIX_ENV=dev -f docker/Dockerfile . && \
 cd docker-compose && \
-docker-compose -f docker-compose-no-build-geth.yml -f docker-compose.ide-debugging.yml up -d
+docker-compose -f docker-compose-no-build-geth.yml -f docker-compose.ide-debugging-override.yml up -d
 ```
 This will:
 - Build the container in development mode (`MIX_ENV=dev`).
-- Map the local codebase (`/apps`, `/envs`, `/config`) into the container.
+- Map the local codebase (`/apps`, `/docker-compose/envs`, `/config`) into the container.
 - Start the Phoenix server with hot reloading enabled for your code changes.
 
 To see your changes, simply refresh the browser window.
@@ -64,7 +64,7 @@ Ecto `create` and `migrate` commands run automatically during container startup 
 To delete and recreate the containers using the images that you previously built, whilst maintaining the use of the override file:
 ```bash
 docker-compose down
-docker-compose -f docker-compose.yml -f docker-compose.ide-debugging.yml up -d
+docker-compose -f docker-compose.yml -f docker-compose.ide-debugging-override.yml up -d
 ```
 
 ## Recompiling the static assets
