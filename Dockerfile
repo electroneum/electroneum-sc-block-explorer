@@ -60,4 +60,7 @@ RUN cd apps/explorer/ && \
     npm install && \
     apk update && apk del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3
 
+RUN apk add --update git make
+RUN export "CFLAGS=-I/usr/local/include -L/usr/local/lib" && cd deps/ex_secp256k1 && mix deps.get && mix compile
+
 RUN mix phx.digest
