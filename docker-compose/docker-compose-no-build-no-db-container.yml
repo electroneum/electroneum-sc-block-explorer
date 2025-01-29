@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   blockscout:
     image: blockscout/blockscout:${DOCKER_TAG:-latest}
