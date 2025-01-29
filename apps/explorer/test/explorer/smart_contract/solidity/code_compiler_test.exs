@@ -14,9 +14,16 @@ defmodule Explorer.SmartContract.Solidity.CodeCompilerTest do
 
   describe "run/2" do
     setup do
+      configuration = Application.get_env(:explorer, Explorer.SmartContract.RustVerifierInterfaceBehaviour)
+      Application.put_env(:explorer, Explorer.SmartContract.RustVerifierInterfaceBehaviour, enabled: false)
+
+      on_exit(fn ->
+        Application.put_env(:explorer, Explorer.SmartContract.RustVerifierInterfaceBehaviour, configuration)
+      end)
+
       {:ok,
        contract_code_info: Factory.contract_code_info(),
-       contract_code_info_modern_compilator: Factory.contract_code_info_modern_compilator()}
+       contract_code_info_modern_compiler: Factory.contract_code_info_modern_compiler()}
     end
 
     test "compiles the latest solidity version", %{contract_code_info: contract_code_info} do
@@ -38,15 +45,15 @@ defmodule Explorer.SmartContract.Solidity.CodeCompilerTest do
     end
 
     test "compiles a optimized smart contract", %{
-      contract_code_info_modern_compilator: contract_code_info_modern_compilator
+      contract_code_info_modern_compiler: contract_code_info_modern_compiler
     } do
       optimize = true
 
       response =
         CodeCompiler.run(
-          name: contract_code_info_modern_compilator.name,
-          compiler_version: contract_code_info_modern_compilator.version,
-          code: contract_code_info_modern_compilator.source_code,
+          name: contract_code_info_modern_compiler.name,
+          compiler_version: contract_code_info_modern_compiler.version,
+          code: contract_code_info_modern_compiler.source_code,
           optimize: optimize,
           evm_version: "byzantium"
         )
@@ -60,15 +67,15 @@ defmodule Explorer.SmartContract.Solidity.CodeCompilerTest do
     end
 
     test "compiles smart contract with default evm version", %{
-      contract_code_info_modern_compilator: contract_code_info_modern_compilator
+      contract_code_info_modern_compiler: contract_code_info_modern_compiler
     } do
       optimize = true
 
       response =
         CodeCompiler.run(
-          name: contract_code_info_modern_compilator.name,
-          compiler_version: contract_code_info_modern_compilator.version,
-          code: contract_code_info_modern_compilator.source_code,
+          name: contract_code_info_modern_compiler.name,
+          compiler_version: contract_code_info_modern_compiler.version,
+          code: contract_code_info_modern_compiler.source_code,
           optimize: optimize,
           evm_version: "default"
         )
@@ -353,17 +360,17 @@ defmodule Explorer.SmartContract.Solidity.CodeCompilerTest do
     end
   end
 
-  # describe "allowed_evm_versions/0" do
+  # describe "allowed_solidity_evm_versions/0" do
   #   test "returns allowed evm versions defined by ALLOWED_EVM_VERSIONS env var" do
-  #     Application.put_env(:explorer, :allowed_evm_versions, "CustomEVM1,CustomEVM2,CustomEVM3")
-  #     response = CodeCompiler.allowed_evm_versions()
+  #     Application.put_env(:explorer, :allowed_solidity_evm_versions, "CustomEVM1,CustomEVM2,CustomEVM3")
+  #     response = CodeCompiler.evm_versions(:solidity)
 
   #     assert ["CustomEVM1", "CustomEVM2", "CustomEVM3"] = response
   #   end
 
   #   test "returns allowed evm versions defined by not trimmed ALLOWED_EVM_VERSIONS env var" do
-  #     Application.put_env(:explorer, :allowed_evm_versions, "CustomEVM1,  CustomEVM2, CustomEVM3")
-  #     response = CodeCompiler.allowed_evm_versions()
+  #     Application.put_env(:explorer, :allowed_solidity_evm_versions, "CustomEVM1,  CustomEVM2, CustomEVM3")
+  #     response = CodeCompiler.evm_versions(:solidity)
 
   #     assert ["CustomEVM1", "CustomEVM2", "CustomEVM3"] = response
   #   end
@@ -371,11 +378,11 @@ defmodule Explorer.SmartContract.Solidity.CodeCompilerTest do
   #   test "returns default_allowed_evm_versions" do
   #     Application.put_env(
   #       :explorer,
-  #       :allowed_evm_versions,
+  #       :allowed_solidity_evm_versions,
   #       "homestead,tangerineWhistle,spuriousDragon,byzantium,constantinople,petersburg"
   #     )
 
-  #     response = CodeCompiler.allowed_evm_versions()
+  #     response = CodeCompiler.evm_versions(:solidity)
 
   #     assert ["homestead", "tangerineWhistle", "spuriousDragon", "byzantium", "constantinople", "petersburg"] = response
   #   end

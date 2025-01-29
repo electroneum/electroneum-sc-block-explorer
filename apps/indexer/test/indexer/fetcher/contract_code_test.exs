@@ -24,8 +24,8 @@ defmodule Indexer.Fetcher.ContractCodeTest do
   end
 
   describe "async_fetch/1" do
-    # geth test node on circle ci is synced farther than parity
-    @tag :no_parity
+    # geth test node on circle ci is synced farther than Nethermind
+    @tag :no_nethermind
     test "fetched codes for address_hashes", %{json_rpc_named_arguments: json_rpc_named_arguments} do
       variant = Keyword.fetch!(json_rpc_named_arguments, :variant)
 
@@ -47,7 +47,7 @@ defmodule Indexer.Fetcher.ContractCodeTest do
               }
             }
 
-          EthereumJSONRPC.Parity ->
+          EthereumJSONRPC.Nethermind ->
             %{
               block_number: 348_179,
               code:
@@ -86,9 +86,12 @@ defmodule Indexer.Fetcher.ContractCodeTest do
       ContractCode.Supervisor.Case.start_supervised!(json_rpc_named_arguments: json_rpc_named_arguments)
 
       assert :ok =
-               ContractCode.async_fetch([
-                 %{created_contract_address_hash: address, block_number: block_number, hash: hash}
-               ])
+               ContractCode.async_fetch(
+                 [
+                   %{created_contract_address_hash: address, block_number: block_number, hash: hash}
+                 ],
+                 false
+               )
 
       fetched_address =
         wait(fn ->

@@ -3,6 +3,7 @@ defmodule BlockScoutWeb.API.RPC.TokenView do
 
   alias BlockScoutWeb.API.RPC.RPCView
   alias BlockScoutWeb.BridgedTokensView
+  alias Explorer.Chain.CurrencyHelper
 
   def render("gettoken.json", %{token: token}) do
     RPCView.render("show.json", data: prepare_token(token))
@@ -41,12 +42,8 @@ defmodule BlockScoutWeb.API.RPC.TokenView do
     }
   end
 
-  defp prepare_bridged_token([]) do
-    %{}
-  end
-
-  defp prepare_bridged_token([token, bridged_token]) do
-    total_supply = divide_decimals(token.total_supply, token.decimals)
+  defp prepare_bridged_token({token, bridged_token}) do
+    total_supply = CurrencyHelper.divide_decimals(token.total_supply, token.decimals)
     usd_value = BridgedTokensView.bridged_token_usd_cap(bridged_token, token)
 
     %{

@@ -10,25 +10,32 @@ The Electroneum Smartchain Explorer provides a comprehensive, easy-to-use interf
 
 Please see the parent project (Blockscout) [documentation](https://docs.blockscout.com/) for detailed information and setup instructions, and for related questions, comments and feature requests see the [discussions section](https://github.com/blockscout/blockscout/discussions).
 
-## About BlockScout
+## About Blockscout
 
-BlockScout is an Elixir application that allows users to search transactions, view accounts and balances, and verify smart contracts on the Electroneum network including all forks and sidechains.
+Blockscout allows users to search transactions, view accounts and balances, verify and interact with smart contracts and view and interact with applications on the Electroneum network including many forks, sidechains, L2s and testnets.
 
-Currently available full-featured block explorers (Etherscan, Etherchain, Blockchair) are closed systems which are not independently verifiable.  As Electroneum sidechains continue to proliferate in both private and public settings, transparent, open-source tools are needed to analyze and validate transactions.
+Blockscout is an open-source alternative to centralized, closed source block explorers such as Etherscan, Etherchain and others.  As Electroneum sidechains and L2s continue to proliferate in both private and public settings, transparent, open-source tools are needed to analyze and validate all transactions.
+
+## Supported Projects
+
+Blockscout currently supports several hundred chains and rollups throughout the greater blockchain ecosystem. Ethereum, Cosmos, Polkadot, Avalanche, Near and many others include Blockscout integrations. [A comprehensive list is available here](https://docs.blockscout.com/about/projects). If your project is not listed, please submit a PR or [contact the team in Discord](https://discord.com/invite/blockscout).
 
 ## Getting Started
 
 See the [project documentation](https://docs.blockscout.com/) for instructions:
-- [Requirements](https://docs.blockscout.com/for-developers/information-and-settings/requirements)
+
+- [Manual deployment](https://docs.blockscout.com/for-developers/deployment/manual-deployment-guide)
+- [Docker-compose deployment](https://docs.blockscout.com/for-developers/deployment/docker-compose-deployment)
+- [Kubernetes deployment](https://docs.blockscout.com/for-developers/deployment/kubernetes-deployment)
+- [Manual deployment (backend + old UI)](https://docs.blockscout.com/for-developers/deployment/manual-old-ui)
 - [Ansible deployment](https://docs.blockscout.com/for-developers/ansible-deployment)
-- [Manual deployment](https://docs.blockscout.com/for-developers/manual-deployment)
-- [ENV variables](https://docs.blockscout.com/for-developers/information-and-settings/env-variables)
+- [ENV variables](https://docs.blockscout.com/setup/env-variables)
 - [Configuration options](https://docs.blockscout.com/for-developers/configuration-options)
-- [Local Development Guide](DEVELOPMENT.md) 
+- [Local Development Guide](DEVELOPMENT.md)
 
 ## Acknowledgements
 
-We would like to thank the [EthPrize foundation](http://ethprize.io/) for their funding support.
+We would like to thank the EthPrize foundation for their funding support.
 
 ## Contributing
 

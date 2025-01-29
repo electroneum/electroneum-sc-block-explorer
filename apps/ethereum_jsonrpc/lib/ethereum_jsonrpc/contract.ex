@@ -18,7 +18,7 @@ defmodule EthereumJSONRPC.Contract do
           required(:contract_address) => String.t(),
           required(:method_id) => String.t(),
           required(:args) => [term()],
-          optional(:block_number) => EthereumJSONRPC.block_number()
+          optional(:block_number) => EthereumJSONRPC.block_number() | nil
         }
 
   @typedoc """
@@ -56,6 +56,7 @@ defmodule EthereumJSONRPC.Contract do
       |> case do
         {:ok, responses} -> responses
         {:error, {:bad_gateway, _request_url}} -> raise "Bad gateway"
+        {:error, {reason, _request_url}} -> raise to_string(reason)
         {:error, reason} when is_atom(reason) -> raise Atom.to_string(reason)
         {:error, error} -> raise error
       end
@@ -132,9 +133,13 @@ defmodule EthereumJSONRPC.Contract do
 
   defp convert_int_string_to_array_inner(arg) do
     arg
-    |> Enum.map(fn el ->
-      {int, _} = Integer.parse(el)
-      int
+    |> Enum.map(fn
+      el when is_integer(el) ->
+        el
+
+      el ->
+        {int, _} = Integer.parse(el)
+        int
     end)
   end
 
@@ -218,6 +223,8 @@ defmodule EthereumJSONRPC.Contract do
       other -> other
     end
   end
+
+  defp format_error(nil), do: {:error, ""}
 
   defp format_error(message) when is_binary(message) do
     {:error, message}

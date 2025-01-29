@@ -3,7 +3,7 @@ defmodule Indexer.Fetcher.Token do
   Fetches information about a token.
   """
 
-  use Indexer.Fetcher
+  use Indexer.Fetcher, restart: :permanent
   use Spandex.Decorators
 
   alias Explorer.Chain
@@ -14,12 +14,7 @@ defmodule Indexer.Fetcher.Token do
 
   @behaviour BufferedTask
 
-  @defaults [
-    flush_interval: 300,
-    max_batch_size: 1,
-    max_concurrency: 10,
-    task_supervisor: Indexer.Fetcher.Token.TaskSupervisor
-  ]
+  @default_max_concurrency 10
 
   @doc false
   def child_spec([init_options, gen_server_options]) do
@@ -32,7 +27,7 @@ defmodule Indexer.Fetcher.Token do
     end
 
     merged_init_opts =
-      @defaults
+      defaults()
       |> Keyword.merge(mergeable_init_options)
       |> Keyword.put(:state, state)
 
@@ -42,9 +37,13 @@ defmodule Indexer.Fetcher.Token do
   @impl BufferedTask
   def init(initial_acc, reducer, _) do
     {:ok, acc} =
-      Chain.stream_uncataloged_token_contract_address_hashes(initial_acc, fn address, acc ->
-        reducer.(address, acc)
-      end)
+      Chain.stream_uncataloged_token_contract_address_hashes(
+        initial_acc,
+        fn address, acc ->
+          reducer.(address, acc)
+        end,
+        true
+      )
 
     acc
   end
@@ -52,9 +51,7 @@ defmodule Indexer.Fetcher.Token do
   @impl BufferedTask
   @decorate trace(name: "fetch", resource: "Indexer.Fetcher.Token.run/2", service: :indexer, tracer: Tracer)
   def run([token_contract_address], _json_rpc_named_arguments) do
-    options = [necessity_by_association: %{[contract_address: :smart_contract] => :optional}]
-
-    case Chain.token_from_address_hash(token_contract_address, options) do
+    case Chain.token_from_address_hash(token_contract_address) do
       {:ok, %Token{} = token} ->
         catalog_token(token)
     end
@@ -63,18 +60,27 @@ defmodule Indexer.Fetcher.Token do
   @doc """
   Fetches token data asynchronously given a list of `t:Explorer.Chain.Token.t/0`s.
   """
-  @spec async_fetch([Address.t()]) :: :ok
-  def async_fetch(token_contract_addresses) do
-    BufferedTask.buffer(__MODULE__, token_contract_addresses)
+  @spec async_fetch([Address.t()], boolean()) :: :ok
+  def async_fetch(token_contract_addresses, realtime?) do
+    BufferedTask.buffer(__MODULE__, token_contract_addresses, realtime?)
   end
 
-  defp catalog_token(%Token{contract_address_hash: contract_address_hash} = token) do
+  defp catalog_token(token) do
     token_params =
-      contract_address_hash
+      token
       |> MetadataRetriever.get_functions_of()
-      |> Map.put(:cataloged, true)
+      |> (&if(&1 == %{}, do: &1, else: Map.put(&1, :cataloged, true))).()
 
-    {:ok, _} = Chain.update_token(%{token | updated_at: DateTime.utc_now()}, token_params)
+    {:ok, _} = Chain.update_token(token, token_params)
     :ok
+  end
+
+  defp defaults do
+    [
+      flush_interval: 300,
+      max_batch_size: 1,
+      max_concurrency: Application.get_env(:indexer, __MODULE__)[:concurrency] || @default_max_concurrency,
+      task_supervisor: Indexer.Fetcher.Token.TaskSupervisor
+    ]
   end
 end

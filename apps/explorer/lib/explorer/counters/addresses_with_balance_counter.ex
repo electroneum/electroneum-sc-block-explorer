@@ -6,8 +6,16 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
   """
 
   use GenServer
+  # It is undesirable to automatically start the consolidation in all environments.
+  # Consider the test environment: if the consolidation initiates but does not
+  # finish before a test ends, that test will fail. This way, hundreds of
+  # tests were failing before disabling the consolidation and the scheduler in
+  # the test env.
+  use Utils.CompileTimeEnvHelper,
+    enable_consolidation: [:explorer, [__MODULE__, :enable_consolidation]],
+    update_interval_in_milliseconds: [:explorer, [__MODULE__, :update_interval_in_milliseconds]]
 
-  alias Explorer.Chain
+  alias Explorer.Chain.Address.Counters
 
   @table :addresses_with_balance_counter
 
@@ -20,16 +28,6 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
   def cache_key do
     @cache_key
   end
-
-  # It is undesirable to automatically start the consolidation in all environments.
-  # Consider the test environment: if the consolidation initiates but does not
-  # finish before a test ends, that test will fail. This way, hundreds of
-  # tests were failing before disabling the consolidation and the scheduler in
-  # the test env.
-  config = Application.get_env(:explorer, Explorer.Counters.AddressesWithBalanceCounter)
-  @enable_consolidation Keyword.get(config, :enable_consolidation)
-
-  @update_interval_in_seconds Keyword.get(config, :update_interval_in_seconds)
 
   @doc """
   Starts a process to periodically update the counter of the token holders.
@@ -58,7 +56,7 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
   end
 
   defp schedule_next_consolidation do
-    Process.send_after(self(), :consolidate, :timer.seconds(@update_interval_in_seconds))
+    Process.send_after(self(), :consolidate, @update_interval_in_milliseconds)
   end
 
   @doc """
@@ -104,7 +102,7 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
   Consolidates the info by populating the `:ets` table with the current database information.
   """
   def consolidate do
-    counter = Chain.count_addresses_with_balance()
+    counter = Counters.count_addresses_with_balance()
 
     insert_counter({cache_key(), counter})
   end

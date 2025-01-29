@@ -11,13 +11,35 @@ Application.put_env(:wallaby, :base_url, BlockScoutWeb.Endpoint.url())
 
 {:ok, _} = Application.ensure_all_started(:ex_machina)
 
-ExUnit.configure(formatters: [JUnitFormatter, ExUnit.CLIFormatter])
+Bureaucrat.start(
+  writer: Bureaucrat.ApiBlueprintWriter,
+  default_path: "API blueprint.md",
+  env_var: "DOC"
+)
+
+# Bureaucrat.start()
+
+ExUnit.configure(formatters: [JUnitFormatter, ExUnit.CLIFormatter, Bureaucrat.Formatter])
 ExUnit.start()
 
 Mox.defmock(Explorer.ExchangeRates.Source.TestSource, for: Explorer.ExchangeRates.Source)
 
 Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Account, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.PolygonEdge, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.PolygonZkevm, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.RSK, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Shibarium, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Suave, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Beacon, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Stability, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.BridgedTokens, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Filecoin, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Mud, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.ShrunkInternalTransactions, :manual)
 
-Absinthe.Test.prime(BlockScoutWeb.Schema)
+Absinthe.Test.prime(BlockScoutWeb.GraphQL.Schema)
 
 Mox.defmock(EthereumJSONRPC.Mox, for: EthereumJSONRPC.Transport)
+
+Mox.defmock(Explorer.Mox.HTTPoison, for: HTTPoison.Base)

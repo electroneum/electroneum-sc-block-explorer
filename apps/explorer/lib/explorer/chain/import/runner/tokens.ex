@@ -2,6 +2,7 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
   @moduledoc """
   Bulk imports `t:Explorer.Chain.Token.t/0`.
   """
+  use Utils.CompileTimeEnvHelper, bridged_tokens_enabled: [:explorer, [Explorer.Chain.BridgedToken, :enabled]]
 
   require Ecto.Query
 
@@ -9,6 +10,7 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
 
   alias Ecto.{Multi, Repo}
   alias Explorer.Chain.{Hash, Import, Token}
+  alias Explorer.Prometheus.Instrumenter
 
   @behaviour Import.Runner
 
@@ -21,79 +23,10 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
   @type holder_count :: non_neg_integer()
   @type token_holder_count :: %{contract_address_hash: Hash.Address.t(), count: holder_count()}
 
-  def acquire_contract_address_tokens(repo, contract_address_hashes_and_token_ids) do
-    initial_query_no_token_id =
-      from(token in Token,
-        select: token
-      )
-
-    initial_query_with_token_id =
-      from(token in Token,
-        left_join: instance in Token.Instance,
-        on: token.contract_address_hash == instance.token_contract_address_hash,
-        select: token
-      )
-
-    {query_no_token_id, query_with_token_id} =
-      contract_address_hashes_and_token_ids
-      |> Enum.reduce({initial_query_no_token_id, initial_query_with_token_id}, fn {contract_address_hash, token_id},
-                                                                                  {query_no_token_id,
-                                                                                   query_with_token_id} ->
-        if is_nil(token_id) do
-          {from(
-             token in query_no_token_id,
-             or_where: token.contract_address_hash == ^contract_address_hash
-           ), query_with_token_id}
-        else
-          {query_no_token_id,
-           from(
-             [token, instance] in query_with_token_id,
-             or_where: token.contract_address_hash == ^contract_address_hash and instance.token_id == ^token_id
-           )}
-        end
-      end)
-
-    final_query_no_token_id =
-      if query_no_token_id == initial_query_no_token_id do
-        nil
-      else
-        from(
-          token in query_no_token_id,
-          # Enforce Token ShareLocks order (see docs: sharelocks.md)
-          order_by: [
-            token.contract_address_hash
-          ],
-          lock: "FOR UPDATE"
-        )
-      end
-
-    final_query_with_token_id =
-      if query_with_token_id == initial_query_with_token_id do
-        nil
-      else
-        from(
-          [token, instance] in query_with_token_id,
-          # Enforce Token ShareLocks order (see docs: sharelocks.md)
-          order_by: [
-            token.contract_address_hash,
-            instance.token_id
-          ],
-          lock: "FOR UPDATE"
-        )
-      end
-
-    tokens_no_token_id = (final_query_no_token_id && repo.all(final_query_no_token_id)) || []
-    tokens_with_token_id = (final_query_with_token_id && repo.all(final_query_with_token_id)) || []
-    tokens = tokens_no_token_id ++ tokens_with_token_id
-
-    {:ok, tokens}
-  end
-
   def update_holder_counts_with_deltas(repo, token_holder_count_deltas, %{
         timeout: timeout,
         timestamps: %{updated_at: updated_at}
       }) do
-    # NOTE that acquire_contract_address_tokens needs to be called before this
     {hashes, deltas} =
       token_holder_count_deltas
       |> Enum.map(fn %{contract_address_hash: contract_address_hash, delta: delta} ->
@@ -101,6 +34,15 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
         {contract_address_hash_bytes, delta}
       end)
       |> Enum.unzip()
+
+    token_query =
+      from(
+        token in Token,
+        where: token.contract_address_hash in ^hashes,
+        select: token.contract_address_hash,
+        order_by: token.contract_address_hash,
+        lock: "FOR NO KEY UPDATE"
+      )
 
     query =
       from(
@@ -112,8 +54,8 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
             ^deltas
           ),
         on: token.contract_address_hash == deltas.contract_address_hash,
+        where: token.contract_address_hash in subquery(token_query),
         where: not is_nil(token.holder_count),
-        # ShareLocks order already enforced by `acquire_contract_address_tokens` (see docs: sharelocks.md)
         update: [
           set: [
             holder_count: token.holder_count + deltas.delta,
@@ -154,8 +96,22 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
       |> Map.put_new(:timeout, @timeout)
       |> Map.put(:timestamps, timestamps)
 
-    Multi.run(multi, :tokens, fn repo, _ ->
-      insert(repo, changes_list, insert_options)
+    multi
+    |> Multi.run(:filter_token_params, fn repo, _ ->
+      Instrumenter.block_import_stage_runner(
+        fn -> filter_token_params(repo, changes_list) end,
+        :block_referencing,
+        :tokens,
+        :filter_token_params
+      )
+    end)
+    |> Multi.run(:tokens, fn repo, %{filter_token_params: filtered_changes_list} ->
+      Instrumenter.block_import_stage_runner(
+        fn -> insert(repo, filtered_changes_list, insert_options) end,
+        :block_referencing,
+        :tokens,
+        :tokens
+      )
     end)
   end
 
@@ -173,7 +129,10 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
     ordered_changes_list =
       changes_list
       # brand new tokens start with no holders
-      |> Stream.map(&Map.put_new(&1, :holder_count, 0))
+      # set cataloged: nil, if not set before, to get proper COALESCE result
+      # if don't set it, cataloged will default to false (as in DB schema)
+      # and COALESCE in on_conflict will return false
+      |> Stream.map(fn token -> token |> Map.put_new(:holder_count, 0) |> Map.put_new(:cataloged, nil) end)
       # Enforce Token ShareLocks order (see docs: sharelocks.md)
       |> Enum.sort_by(& &1.contract_address_hash)
 
@@ -190,38 +149,109 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
       )
   end
 
-  def default_on_conflict do
-    from(
-      token in Token,
-      update: [
-        set: [
-          name: fragment("EXCLUDED.name"),
-          symbol: fragment("EXCLUDED.symbol"),
-          total_supply: fragment("EXCLUDED.total_supply"),
-          decimals: fragment("EXCLUDED.decimals"),
-          type: fragment("EXCLUDED.type"),
-          cataloged: fragment("EXCLUDED.cataloged"),
-          bridged: fragment("EXCLUDED.bridged"),
-          skip_metadata: fragment("EXCLUDED.skip_metadata"),
-          # `holder_count` is not updated as a pre-existing token means the `holder_count` is already initialized OR
-          #   need to be migrated with `priv/repo/migrations/scripts/update_new_tokens_holder_count_in_batches.sql.exs`
-          # Don't update `contract_address_hash` as it is the primary key and used for the conflict target
-          inserted_at: fragment("LEAST(?, EXCLUDED.inserted_at)", token.inserted_at),
-          updated_at: fragment("GREATEST(?, EXCLUDED.updated_at)", token.updated_at)
-        ]
-      ],
-      where:
-        fragment(
-          "(EXCLUDED.name, EXCLUDED.symbol, EXCLUDED.total_supply, EXCLUDED.decimals, EXCLUDED.type, EXCLUDED.cataloged, EXCLUDED.bridged, EXCLUDED.skip_metadata) IS DISTINCT FROM (?, ?, ?, ?, ?, ?, ?, ?)",
-          token.name,
-          token.symbol,
-          token.total_supply,
-          token.decimals,
-          token.type,
-          token.cataloged,
-          token.bridged,
-          token.skip_metadata
-        )
-    )
+  defp filter_token_params(repo, changes_list) do
+    existing_token_map =
+      changes_list
+      |> Enum.map(& &1[:contract_address_hash])
+      |> Enum.uniq()
+      |> Token.tokens_by_contract_address_hashes()
+      |> repo.all()
+      |> Map.new(&{&1.contract_address_hash, &1})
+
+    filtered_tokens =
+      Enum.filter(changes_list, fn token ->
+        existing_token = existing_token_map[token[:contract_address_hash]]
+        should_update?(token, existing_token)
+      end)
+
+    {:ok, filtered_tokens}
+  end
+
+  if @bridged_tokens_enabled do
+    @fields_to_replace [:name, :symbol, :total_supply, :decimals, :type, :cataloged, :bridged, :skip_metadata]
+
+    def default_on_conflict do
+      from(
+        token in Token,
+        update: [
+          set: [
+            name: fragment("COALESCE(EXCLUDED.name, ?)", token.name),
+            symbol: fragment("COALESCE(EXCLUDED.symbol, ?)", token.symbol),
+            total_supply: fragment("COALESCE(EXCLUDED.total_supply, ?)", token.total_supply),
+            decimals: fragment("COALESCE(EXCLUDED.decimals, ?)", token.decimals),
+            type: fragment("COALESCE(EXCLUDED.type, ?)", token.type),
+            cataloged: fragment("COALESCE(EXCLUDED.cataloged, ?)", token.cataloged),
+            bridged: fragment("COALESCE(EXCLUDED.bridged, ?)", token.bridged),
+            skip_metadata: fragment("COALESCE(EXCLUDED.skip_metadata, ?)", token.skip_metadata),
+            # `holder_count` is not updated as a pre-existing token means the `holder_count` is already initialized OR
+            #   need to be migrated with `priv/repo/migrations/scripts/update_new_tokens_holder_count_in_batches.sql.exs`
+            # Don't update `contract_address_hash` as it is the primary key and used for the conflict target
+            inserted_at: fragment("LEAST(?, EXCLUDED.inserted_at)", token.inserted_at),
+            updated_at: fragment("GREATEST(?, EXCLUDED.updated_at)", token.updated_at)
+          ]
+        ],
+        where:
+          fragment(
+            "(EXCLUDED.name, EXCLUDED.symbol, EXCLUDED.total_supply, EXCLUDED.decimals, EXCLUDED.type, EXCLUDED.cataloged, EXCLUDED.bridged, EXCLUDED.skip_metadata) IS DISTINCT FROM (?, ?, ?, ?, ?, ?, ?, ?)",
+            token.name,
+            token.symbol,
+            token.total_supply,
+            token.decimals,
+            token.type,
+            token.cataloged,
+            token.bridged,
+            token.skip_metadata
+          )
+      )
+    end
+  else
+    @fields_to_replace [:name, :symbol, :total_supply, :decimals, :type, :cataloged, :skip_metadata]
+
+    def default_on_conflict do
+      from(
+        token in Token,
+        update: [
+          set: [
+            name: fragment("COALESCE(EXCLUDED.name, ?)", token.name),
+            symbol: fragment("COALESCE(EXCLUDED.symbol, ?)", token.symbol),
+            total_supply: fragment("COALESCE(EXCLUDED.total_supply, ?)", token.total_supply),
+            decimals: fragment("COALESCE(EXCLUDED.decimals, ?)", token.decimals),
+            type: fragment("COALESCE(EXCLUDED.type, ?)", token.type),
+            cataloged: fragment("COALESCE(EXCLUDED.cataloged, ?)", token.cataloged),
+            skip_metadata: fragment("COALESCE(EXCLUDED.skip_metadata, ?)", token.skip_metadata),
+            # `holder_count` is not updated as a pre-existing token means the `holder_count` is already initialized OR
+            #   need to be migrated with `priv/repo/migrations/scripts/update_new_tokens_holder_count_in_batches.sql.exs`
+            # Don't update `contract_address_hash` as it is the primary key and used for the conflict target
+            inserted_at: fragment("LEAST(?, EXCLUDED.inserted_at)", token.inserted_at),
+            updated_at: fragment("GREATEST(?, EXCLUDED.updated_at)", token.updated_at)
+          ]
+        ],
+        where:
+          fragment(
+            "(EXCLUDED.name, EXCLUDED.symbol, EXCLUDED.total_supply, EXCLUDED.decimals, EXCLUDED.type, EXCLUDED.cataloged, EXCLUDED.skip_metadata) IS DISTINCT FROM (?, ?, ?, ?, ?, ?, ?)",
+            token.name,
+            token.symbol,
+            token.total_supply,
+            token.decimals,
+            token.type,
+            token.cataloged,
+            token.skip_metadata
+          )
+      )
+    end
+  end
+
+  defp should_update?(_new_token, nil), do: true
+
+  defp should_update?(new_token, existing_token) do
+    new_token_params = Map.take(new_token, @fields_to_replace)
+
+    Enum.reduce_while(new_token_params, false, fn {key, value}, _acc ->
+      if Map.get(existing_token, key) == value do
+        {:cont, false}
+      else
+        {:halt, true}
+      end
+    end)
   end
 end

@@ -5,11 +5,11 @@ defmodule EthereumJSONRPC.Besu.Trace do
   extension to the Electroneum JSONRPC standard that is only supported by [Parity](https://wiki.parity.io/).
   """
 
-  alias EthereumJSONRPC.Parity.Trace, as: ParityTrace
-  alias EthereumJSONRPC.Parity.Trace.{Action, Result}
+  alias EthereumJSONRPC.Nethermind.Trace, as: NethermindTrace
+  alias EthereumJSONRPC.Nethermind.Trace.{Action, Result}
 
   def elixir_to_params(elixir) do
-    ParityTrace.elixir_to_params(elixir)
+    NethermindTrace.elixir_to_params(elixir)
   end
 
   def to_elixir(%{"blockNumber" => _, "index" => _, "transactionHash" => _, "transactionIndex" => _} = trace)
@@ -18,7 +18,7 @@ defmodule EthereumJSONRPC.Besu.Trace do
   end
 
   def to_elixir(trace) do
-    ParityTrace.to_elixir(trace)
+    NethermindTrace.to_elixir(trace)
   end
 
   # subtraces is an actual integer in JSON and not hex-encoded

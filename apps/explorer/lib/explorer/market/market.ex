@@ -3,40 +3,67 @@ defmodule Explorer.Market do
   Context for data related to the cryptocurrency market.
   """
 
-  alias Explorer.Chain.Address.CurrentTokenBalance
-  alias Explorer.Chain.{BridgedToken, Hash}
-  alias Explorer.Chain.Supply.TokenBridge
   alias Explorer.ExchangeRates.Token
   alias Explorer.Market.{MarketHistory, MarketHistoryCache}
-  alias Explorer.{ExchangeRates, KnownTokens, Repo}
+  alias Explorer.{ExchangeRates, Repo}
 
-  @doc """
-  Get most recent exchange rate for the given symbol.
-  """
-  @spec get_exchange_rate(String.t()) :: Token.t() | nil
-  def get_exchange_rate(symbol) do
-    ExchangeRates.lookup(symbol)
-  end
-
-  @doc """
-  Get the address of the token with the given symbol.
-  """
-  @spec get_known_address(String.t()) :: Hash.Address.t() | nil
-  def get_known_address(symbol) do
-    case KnownTokens.lookup(symbol) do
-      {:ok, address} -> address
-      nil -> nil
-    end
-  end
+  import Ecto.Query, only: [from: 2]
 
   @doc """
   Retrieves the history for the recent specified amount of days.
 
   Today's date is include as part of the day count
   """
-  @spec fetch_recent_history() :: [MarketHistory.t()]
-  def fetch_recent_history do
-    MarketHistoryCache.fetch()
+  @spec fetch_recent_history(boolean()) :: [MarketHistory.t()]
+  def fetch_recent_history(secondary_coin? \\ false) do
+    MarketHistoryCache.fetch(secondary_coin?)
+  end
+
+  @doc """
+  Retrieves today's native coin exchange rate from the database.
+  """
+  @spec get_native_coin_exchange_rate_from_db(boolean()) :: Token.t()
+  def get_native_coin_exchange_rate_from_db(secondary_coin? \\ false) do
+    today =
+      case fetch_recent_history(secondary_coin?) do
+        [today | _the_rest] -> today
+        _ -> nil
+      end
+
+    if today do
+      %Token{
+        usd_value: Map.get(today, :closing_price),
+        market_cap_usd: Map.get(today, :market_cap),
+        tvl_usd: Map.get(today, :tvl),
+        available_supply: nil,
+        total_supply: nil,
+        btc_value: nil,
+        id: nil,
+        last_updated: nil,
+        name: nil,
+        symbol: nil,
+        volume_24h_usd: nil,
+        image_url: nil
+      }
+    else
+      Token.null()
+    end
+  end
+
+  @doc """
+  Get most recent exchange rate for the native coin from ETS or from DB.
+  """
+  @spec get_coin_exchange_rate() :: Token.t()
+  def get_coin_exchange_rate do
+    ExchangeRates.get_coin_exchange_rate() || get_native_coin_exchange_rate_from_db() || Token.null()
+  end
+
+  @doc """
+  Get most recent exchange rate for the secondary coin from DB.
+  """
+  @spec get_secondary_coin_exchange_rate() :: Token.t()
+  def get_secondary_coin_exchange_rate do
+    ExchangeRates.get_secondary_coin_exchange_rate() || get_native_coin_exchange_rate_from_db(true)
   end
 
   @doc false
@@ -44,81 +71,79 @@ defmodule Explorer.Market do
     records_without_zeroes =
       records
       |> Enum.reject(fn item ->
-        Decimal.equal?(item.closing_price, 0) && Decimal.equal?(item.opening_price, 0)
+        Map.has_key?(item, :opening_price) && Map.has_key?(item, :closing_price) &&
+          Decimal.equal?(item.closing_price, 0) &&
+          Decimal.equal?(item.opening_price, 0)
       end)
       # Enforce MarketHistory ShareLocks order (see docs: sharelocks.md)
       |> Enum.sort_by(& &1.date)
 
-    Repo.insert_all(MarketHistory, records_without_zeroes, on_conflict: :nothing, conflict_target: [:date])
+    Repo.insert_all(MarketHistory, records_without_zeroes,
+      on_conflict: market_history_on_conflict(),
+      conflict_target: [:date, :secondary_coin]
+    )
   end
 
-  def add_price(%{symbol: symbol} = token) do
-    known_address = get_known_address(symbol)
-
-    matches_known_address = known_address && known_address == token.contract_address_hash
-
-    usd_value =
-      cond do
-        matches_known_address ->
-          fetch_token_usd_value(matches_known_address, symbol)
-
-        bridged_token = mainnet_bridged_token?(token) ->
-          TokenBridge.get_current_price_for_bridged_token(
-            token.contract_address_hash,
-            bridged_token.foreign_token_contract_address_hash
-          )
-
-        true ->
-          nil
-      end
-
-    Map.put(token, :usd_value, usd_value)
+  defp market_history_on_conflict do
+    from(
+      market_history in MarketHistory,
+      update: [
+        set: [
+          opening_price:
+            fragment(
+              """
+              CASE WHEN (? IS NULL OR ? = 0) AND EXCLUDED.opening_price IS NOT NULL AND EXCLUDED.opening_price > 0
+              THEN EXCLUDED.opening_price
+              ELSE ?
+              END
+              """,
+              market_history.opening_price,
+              market_history.opening_price,
+              market_history.opening_price
+            ),
+          closing_price:
+            fragment(
+              """
+              CASE WHEN (? IS NULL OR ? = 0) AND EXCLUDED.closing_price IS NOT NULL AND EXCLUDED.closing_price > 0
+              THEN EXCLUDED.closing_price
+              ELSE ?
+              END
+              """,
+              market_history.closing_price,
+              market_history.closing_price,
+              market_history.closing_price
+            ),
+          market_cap:
+            fragment(
+              """
+              CASE WHEN (? IS NULL OR ? = 0) AND EXCLUDED.market_cap IS NOT NULL AND EXCLUDED.market_cap > 0
+              THEN EXCLUDED.market_cap
+              ELSE ?
+              END
+              """,
+              market_history.market_cap,
+              market_history.market_cap,
+              market_history.market_cap
+            ),
+          tvl:
+            fragment(
+              """
+              CASE WHEN (? IS NULL OR ? = 0) AND EXCLUDED.tvl IS NOT NULL AND EXCLUDED.tvl > 0
+              THEN EXCLUDED.tvl
+              ELSE ?
+              END
+              """,
+              market_history.tvl,
+              market_history.tvl,
+              market_history.tvl
+            )
+        ]
+      ],
+      where:
+        is_nil(market_history.tvl) or market_history.tvl == 0 or is_nil(market_history.market_cap) or
+          market_history.market_cap == 0 or is_nil(market_history.opening_price) or
+          market_history.opening_price == 0 or is_nil(market_history.closing_price) or
+          market_history.closing_price == 0
+    )
   end
-
-  def add_price(%CurrentTokenBalance{token: token} = token_balance) do
-    token_with_price = add_price(token)
-
-    Map.put(token_balance, :token, token_with_price)
-  end
-
-  def add_price(tokens) when is_list(tokens) do
-    Enum.map(tokens, fn item ->
-      case item do
-        {token_balance, bridged_token, token} ->
-          {add_price(token_balance), bridged_token, token}
-
-        token_balance ->
-          add_price(token_balance)
-      end
-    end)
-  end
-
-  defp mainnet_bridged_token?(token) do
-    bridged_prop = Map.get(token, :bridged) || nil
-
-    if bridged_prop do
-      bridged_token = Repo.get_by(BridgedToken, home_token_contract_address_hash: token.contract_address_hash)
-
-      if bridged_token do
-        if bridged_token.foreign_chain_id do
-          if Decimal.cmp(bridged_token.foreign_chain_id, Decimal.new(1)) == :eq, do: bridged_token, else: false
-        else
-          false
-        end
-      else
-        false
-      end
-    else
-      false
-    end
-  end
-
-  defp fetch_token_usd_value(true, symbol) do
-    case get_exchange_rate(symbol) do
-      %{usd_value: usd_value} -> usd_value
-      nil -> nil
-    end
-  end
-
-  defp fetch_token_usd_value(_matches_known_address, _symbol), do: nil
 end

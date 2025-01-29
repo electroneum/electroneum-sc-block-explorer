@@ -7,7 +7,7 @@ defmodule Explorer.Accounts.User do
 
   import Ecto.Changeset
 
-  alias Comeonin.Bcrypt
+  alias Bcrypt
   alias Ecto.Changeset
   alias Explorer.Accounts.{User, UserContact}
 
@@ -16,13 +16,7 @@ defmodule Explorer.Accounts.User do
   * `:password_hash` - Encrypted password
   * `:contacts` - List of `t:UserContact.t/0`
   """
-  @type t :: %User{
-          username: String.t(),
-          password_hash: String.t(),
-          contacts: [UserContact.t()]
-        }
-
-  schema "users" do
+  typed_schema "users" do
     field(:username, :string)
     field(:password, :string, virtual: true)
     field(:password_hash, :string)
@@ -42,7 +36,7 @@ defmodule Explorer.Accounts.User do
 
   defp hash_password(%Changeset{} = changeset) do
     if password = get_change(changeset, :password) do
-      put_change(changeset, :password_hash, Bcrypt.hashpwsalt(password))
+      put_change(changeset, :password_hash, Bcrypt.hash_pwd_salt(password))
     else
       changeset
     end

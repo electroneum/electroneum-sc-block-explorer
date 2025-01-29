@@ -12,7 +12,7 @@ defmodule Explorer.Chain.Import.Runner do
 
   @typedoc """
   Validated changes extracted from a valid `Ecto.Changeset` produced by the `t:changeset_function_name/0` in
-  `c:ecto_schemma_module/0`.
+  `c:ecto_schema_module/0`.
   """
   @type changes :: %{optional(atom) => term()}
 
@@ -22,7 +22,7 @@ defmodule Explorer.Chain.Import.Runner do
   @type changes_list :: [changes]
 
   @type changeset_function_name :: atom
-  @type on_conflict :: :nothing | :replace_all | Ecto.Query.t()
+  @type on_conflict :: :nothing | :replace_all | {:replace, [atom()]} | Ecto.Query.t()
 
   @typedoc """
   Runner-specific options under `c:option_key/0` in all options passed to `c:run/3`.

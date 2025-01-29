@@ -41,6 +41,7 @@ defmodule Explorer.Chain.Import.Runner.Address.TokenBalancesTest do
                     address_hash: ^address_hash,
                     block_number: ^block_number,
                     token_contract_address_hash: ^token_contract_address_hash,
+                    token_id: nil,
                     value: ^value,
                     value_fetched_at: ^value_fetched_at
                   }
@@ -83,6 +84,7 @@ defmodule Explorer.Chain.Import.Runner.Address.TokenBalancesTest do
                     address_hash: address_hash,
                     block_number: ^block_number,
                     token_contract_address_hash: ^token_contract_address_hash,
+                    token_id: nil,
                     value: nil,
                     value_fetched_at: ^value_fetched_at
                   }
@@ -151,6 +153,112 @@ defmodule Explorer.Chain.Import.Runner.Address.TokenBalancesTest do
     }
 
     run_changes(new_changes, options)
+  end
+
+  test "set value_fetched_at to null for existing record if incoming data has this field empty" do
+    address = insert(:address)
+    token = insert(:token)
+
+    options = %{
+      timeout: :infinity,
+      timestamps: %{inserted_at: DateTime.utc_now(), updated_at: DateTime.utc_now()}
+    }
+
+    block_number = 1
+
+    value = Decimal.new(100)
+    value_fetched_at = DateTime.utc_now()
+
+    token_contract_address_hash = token.contract_address_hash
+    address_hash = address.hash
+
+    first_changes = %{
+      address_hash: address_hash,
+      block_number: block_number,
+      token_contract_address_hash: token_contract_address_hash,
+      token_id: 11,
+      token_type: "ERC-721",
+      value: value,
+      value_fetched_at: value_fetched_at
+    }
+
+    assert {:ok,
+            %{
+              address_token_balances: [
+                %TokenBalance{
+                  address_hash: address_hash,
+                  block_number: ^block_number,
+                  token_contract_address_hash: ^token_contract_address_hash,
+                  token_id: nil,
+                  value: ^value,
+                  value_fetched_at: ^value_fetched_at
+                }
+              ]
+            }} = run_changes(first_changes, options)
+
+    second_changes = %{
+      address_hash: address_hash,
+      block_number: block_number,
+      token_contract_address_hash: token_contract_address_hash,
+      token_id: 12,
+      token_type: "ERC-721"
+    }
+
+    assert {:ok,
+            %{
+              address_token_balances: [
+                %TokenBalance{
+                  address_hash: ^address_hash,
+                  block_number: ^block_number,
+                  token_contract_address_hash: ^token_contract_address_hash,
+                  token_id: nil,
+                  value: ^value,
+                  value_fetched_at: nil
+                }
+              ]
+            }} = run_changes(second_changes, options)
+  end
+
+  test "filters out changes with tokens that doesn't implement balanceOf function" do
+    address = insert(:address)
+    token = insert(:token)
+
+    options = %{
+      timeout: :infinity,
+      timestamps: %{inserted_at: DateTime.utc_now(), updated_at: DateTime.utc_now()}
+    }
+
+    block_number = 1
+    next_block_number = block_number + 1
+    token_contract_address_hash = token.contract_address_hash
+
+    insert(:missing_balance_of_token,
+      token_contract_address_hash: token_contract_address_hash,
+      block_number: block_number,
+      currently_implemented: true
+    )
+
+    address_hash = address.hash
+
+    changes_list = [
+      %{
+        address_hash: address_hash,
+        block_number: block_number,
+        token_contract_address_hash: token_contract_address_hash,
+        token_id: 11,
+        token_type: "ERC-721"
+      },
+      %{
+        address_hash: address_hash,
+        block_number: next_block_number,
+        token_contract_address_hash: token_contract_address_hash,
+        token_id: 12,
+        token_type: "ERC-721"
+      }
+    ]
+
+    assert {:ok, %{address_token_balances: [%{block_number: ^next_block_number}]}} =
+             run_changes_list(changes_list, options)
   end
 
   defp run_changes(changes, options) when is_map(changes) do

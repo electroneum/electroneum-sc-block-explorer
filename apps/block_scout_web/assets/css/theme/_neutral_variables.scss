@@ -17,6 +17,8 @@ $ETN-red: #F50A56 !default;
 $ETN-turquoise: #00AEAE !default;
 $ETN-additional-font: #fff;
 
+// Logo Size
+$navbar-logo-height: 22px;
 
 // footer
 $footer-background-color: $ETN-dark; //Footer background color
@@ -24,11 +26,6 @@ $footer-title-color: #fff;
 $footer-text-color: #fff;
 $footer-item-disc-color: $ETN-blue;
 .footer-logo { filter: brightness(0) invert(1); }
-
-.footer-link:hover {
-    color: $ETN-blue !important;
-}
-
 
 // dashboard
 $dashboard-line-color-price: $tertiary;// price left border
@@ -50,7 +47,7 @@ $dashboard-banner-network-plain-container-background-color: lighten($dashboard-b
 // navigation
 .navbar { box-shadow: 0px 0px 30px 0px rgba(21, 53, 80, 0.12); } // header shadow
 $dropdown-menu-item-hover-color: $ETN-blue !default;
-$dropdown-menu-item-hover-background: rgba($dropdown-menu-item-hover-color, .1) !default; 
+$dropdown-menu-item-hover-background: rgba($dropdown-menu-item-hover-color, .1) !default;
 $header-icon-color-hover: $ETN-blue !default;
 $header-icon-border-color-hover: $ETN-blue !default;
 
@@ -79,18 +76,6 @@ $card-tab-active: $ETN-blue;
 	    $dashboard-banner-gradient-end
 	  );
 	}
-}
-
-//Pagination
-.pagination-container .pagination .page-item.active .page-link{
-	background-color: $ETN-blue;
-	border-color: $ETN-blue;
-}
-
-.pagination-container .pagination .page-link:not(.no-hover):hover {
-    background-color: $ETN-blue;
-    border: 1px solid $ETN-blue;
-    color: #fff;
 }
 
 // Badges

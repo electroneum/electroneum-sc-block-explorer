@@ -4,26 +4,101 @@ on:
   push:
     branches:
       - master
+      - production-arbitrum
+      - production-core
+      - production-eth-sepolia
+      - production-filecoin
+      - production-fuse
+      - production-optimism
+      - production-immutable
+      - production-iota
+      - production-lukso
+      - production-rsk
+      - production-sokol
+      - production-suave
+      - production-xdai
+      - production-zkevm
+      - production-zksync
+      - staging-l2
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "**/README.md"
+      - "docker/*"
+      - "docker-compose/*"
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     branches:
       - master
-      - staking
 
 env:
   MIX_ENV: test
-  OTP_VERSION: '24.3.4.1'
-  ELIXIR_VERSION: '1.13.4'
+  OTP_VERSION: ${{ github.ref_name == '10284/merge' && '27.1' || vars.OTP_VERSION }}
+  ELIXIR_VERSION: ${{ github.ref_name == '10284/merge' && '1.17.3' || vars.ELIXIR_VERSION }}
+  ACCOUNT_AUTH0_DOMAIN: "blockscoutcom.us.auth0.com"
 
 jobs:
+  matrix-builder:
+    name: Build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          echo "matrix=$(node -e '
+
+            // Add/remove CI matrix chain types here
+            const defaultChainTypes = ["default"];
+
+            const chainTypes = [
+              "arbitrum",
+              "blackfort",
+              "celo",
+              "ethereum",
+              "filecoin",
+              "optimism",
+              "polygon_zkevm",
+              "rsk",
+              "scroll",
+              "shibarium",
+              "stability",
+              "zetachain",
+              "zilliqa",
+              "zksync"
+            ];
+
+            const extraChainTypes = ["suave", "polygon_edge"];
+
+            // Chain type matrix we use in master branch
+            const allChainTypes = [].concat(defaultChainTypes, chainTypes, extraChainTypes);
+
+            const labels = ${{ github.event_name == 'pull_request' && toJson(github.event.pull_request.labels.*.name) || '[]' }};
+            const ciLabels = labels.filter(label => label.startsWith("ci:"));
+            const labeledChainTypes = [].concat(
+              defaultChainTypes.filter(chainType => ciLabels.includes("ci:" + chainType)),
+              chainTypes.filter(chainType => ciLabels.includes("ci:all") || ciLabels.includes("ci:" + chainType)),
+              extraChainTypes.filter(chainType => ciLabels.includes("ci:" + chainType))
+            );
+
+            // Chain type matrix we use in PRs to master branch
+            const ciChainTypes = labeledChainTypes.length > 0 ? labeledChainTypes : defaultChainTypes;
+
+            const matrix = { "chain-type": ${{ github.event_name == 'pull_request' && 'ciChainTypes' || 'allChainTypes' }} };
+            console.log(JSON.stringify(matrix));
+          ')" >> $GITHUB_OUTPUT
+
   build-and-cache:
     name: Build and Cache deps
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: "ELIXIR_VERSION.lock"
         run: echo "${ELIXIR_VERSION}" > ELIXIR_VERSION.lock
@@ -32,15 +107,15 @@ jobs:
         run: echo "${OTP_VERSION}" > OTP_VERSION.lock
 
       - name: Restore Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - name: Conditionally build Mix deps cache
         if: steps.deps-cache.outputs.cache-hit != 'true'
@@ -48,10 +123,10 @@ jobs:
           mix local.hex --force
           mix local.rebar --force
           mix deps.get
-          mix deps.compile
+          mix deps.compile --skip-umbrella-children
 
       - name: Restore Explorer NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: explorer-npm-cache
         with:
           path: apps/explorer/node_modules
@@ -65,7 +140,7 @@ jobs:
         working-directory: apps/explorer
 
       - name: Restore Blockscout Web NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: blockscoutweb-npm-cache
         with:
           path: apps/block_scout_web/assets/node_modules
@@ -80,112 +155,134 @@ jobs:
 
   credo:
     name: Credo
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     needs: build-and-cache
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
-      
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
+
       - name: Restore Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - run: mix credo
 
   check_formatted:
     name: Code formatting checks
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     needs: build-and-cache
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Restore Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - run: mix format --check-formatted
+
   dialyzer:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
     name: Dialyzer static analysis
-    runs-on: ubuntu-18.04
-    needs: build-and-cache
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-cache
+      - matrix-builder
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Restore Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - name: Restore Dialyzer Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: dialyzer-cache
         with:
           path: priv/plts
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-dialyzer-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-${{ matrix.chain-type }}-dialyzer-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-dialyzer-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-${{ matrix.chain-type }}-dialyzer-mixlockhash-
 
       - name: Conditionally build Dialyzer Cache
         if: steps.dialyzer-cache.output.cache-hit != 'true'
         run: |
           mkdir -p priv/plts
           mix dialyzer --plt
+        env:
+          CHAIN_TYPE: ${{ matrix.chain-type != 'default' && matrix.chain-type || '' }}
 
-      - run: mix dialyzer --halt-exit-status
-        name: Run Dialyzer
+      - name: Run Dialyzer
+        run: mix dialyzer --halt-exit-status
+        env:
+          CHAIN_TYPE: ${{ matrix.chain-type != 'default' && matrix.chain-type || '' }}
 
   gettext:
     name: Missing translation keys check
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     needs: build-and-cache
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Restore Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - run: |
           mix gettext.extract --merge | tee stdout.txt
@@ -193,25 +290,28 @@ jobs:
         working-directory: "apps/block_scout_web"
   sobelow:
     name: Sobelow security analysis
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     needs: build-and-cache
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - name: Scan explorer for vulnerabilities
         run: mix sobelow --config
@@ -219,30 +319,34 @@ jobs:
       - name: Scan block_scout_web for vulnerabilities
         run: mix sobelow --config
         working-directory: "apps/block_scout_web"
-  eslint:
-    name: ESLint
-    runs-on: ubuntu-18.04
+
+  cspell:
+    name: Check spelling
+    runs-on: ubuntu-latest
     needs: build-and-cache
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - name: Restore Explorer NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: explorer-npm-cache
         with:
           path: apps/explorer/node_modules
@@ -251,7 +355,56 @@ jobs:
             ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-explorer-npm-
 
       - name: Restore Blockscout Web NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
+        id: blockscoutweb-npm-cache
+        with:
+          path: apps/block_scout_web/assets/node_modules
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-blockscoutweb-npm-${{ hashFiles('apps/block_scout_web/assets/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-blockscoutweb-npm-
+
+      - name: Run cspell
+        uses: streetsidesoftware/cspell-action@v6
+        with:
+          use_cspell_files: true
+          incremental_files_only: false
+
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    needs: build-and-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
+
+      - name: Mix Deps Cache
+        uses: actions/cache/restore@v4
+        id: deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
+
+      - name: Restore Explorer NPM Cache
+        uses: actions/cache@v4
+        id: explorer-npm-cache
+        with:
+          path: apps/explorer/node_modules
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-explorer-npm-${{ hashFiles('apps/explorer/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-explorer-npm-
+
+      - name: Restore Blockscout Web NPM Cache
+        uses: actions/cache@v4
         id: blockscoutweb-npm-cache
         with:
           path: apps/block_scout_web/assets/node_modules
@@ -267,28 +420,31 @@ jobs:
         working-directory: apps/block_scout_web/assets
   jest:
     name: JS Tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     needs: build-and-cache
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - name: Restore Blockscout Web NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: blockscoutweb-npm-cache
         with:
           path: apps/block_scout_web/assets/node_modules
@@ -303,13 +459,46 @@ jobs:
       - run: ./node_modules/.bin/jest
         working-directory: apps/block_scout_web/assets
 
-  test_parity_mox_ethereum_jsonrpc:
-    name: EthereumJSONRPC Tests
-    runs-on: ubuntu-18.04
+  test_utils:
+    name: Utils Tests
+    runs-on: ubuntu-latest
     needs: build-and-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
+
+      - name: Restore Mix Deps Cache
+        uses: actions/cache/restore@v4
+        id: deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
+
+      - working-directory: apps/utils
+        run: mix test
+
+  test_nethermind_mox_ethereum_jsonrpc:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+    name: EthereumJSONRPC Tests
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-cache
+      - matrix-builder
     services:
       postgres:
-        image: postgres
+        image: postgres:17
         env:
           # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
           POSTGRES_DB: explorer_test
@@ -327,45 +516,52 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
-      - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $GITHUB_ENV
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - run: ./bin/install_chrome_headless.sh
-      - name: mix test --exclude no_parity
+      - name: mix test --exclude no_nethermind
         run: |
           cd apps/ethereum_jsonrpc
           mix compile
-          mix test --no-start --exclude no_parity
+          mix test --no-start --exclude no_nethermind
         env:
           # match POSTGRES_PASSWORD for postgres image below
           PGPASSWORD: postgres
           # match POSTGRES_USER for postgres image below
           PGUSER: postgres
-          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Parity.Mox"
+          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Nethermind.Mox"
           ETHEREUM_JSONRPC_WEB_SOCKET_CASE: "EthereumJSONRPC.WebSocket.Case.Mox"
-  test_parity_mox_explorer:
+          CHAIN_TYPE: ${{ matrix.chain-type != 'default' && matrix.chain-type || '' }}
+  test_nethermind_mox_explorer:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
     name: Explorer Tests
-    runs-on: ubuntu-18.04
-    needs: build-and-cache
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-cache
+      - matrix-builder
     services:
       postgres:
-        image: postgres
+        image: postgres:17
         env:
           # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
           POSTGRES_DB: explorer_test
@@ -383,27 +579,28 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
-      - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $GITHUB_ENV
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - name: Restore Explorer NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: explorer-npm-cache
         with:
           path: apps/explorer/node_modules
@@ -412,27 +609,34 @@ jobs:
             ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-explorer-npm
 
       - run: ./bin/install_chrome_headless.sh
-      - name: mix test --exclude no_parity
+      - name: mix test --exclude no_nethermind
         run: |
           mix ecto.create --quiet
           mix ecto.migrate
           cd apps/explorer
           mix compile
-          mix test --no-start --exclude no_parity
+          mix test --no-start --exclude no_nethermind
         env:
           # match POSTGRES_PASSWORD for postgres image below
           PGPASSWORD: postgres
           # match POSTGRES_USER for postgres image below
           PGUSER: postgres
-          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Parity.Mox"
+          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Nethermind.Mox"
           ETHEREUM_JSONRPC_WEB_SOCKET_CASE: "EthereumJSONRPC.WebSocket.Case.Mox"
-  test_parity_mox_indexer:
+          CHAIN_TYPE: ${{ matrix.chain-type != 'default' && matrix.chain-type || '' }}
+          WETH_TOKEN_TRANSFERS_FILTERING_ENABLED: "true"
+  test_nethermind_mox_indexer:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
     name: Indexer Tests
-    runs-on: ubuntu-18.04
-    needs: build-and-cache
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-cache
+      - matrix-builder
     services:
       postgres:
-        image: postgres
+        image: postgres:17
         env:
           # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
           POSTGRES_DB: explorer_test
@@ -450,50 +654,61 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
-      - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $GITHUB_ENV
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
-
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - run: ./bin/install_chrome_headless.sh
 
-      - name: mix test --exclude no_parity
+      - name: mix test --exclude no_nethermind
         run: |
           mix ecto.create --quiet
           mix ecto.migrate
           cd apps/indexer
           mix compile
-          mix test --no-start --exclude no_parity
+          mix test --no-start --exclude no_nethermind
         env:
           # match POSTGRES_PASSWORD for postgres image below
           PGPASSWORD: postgres
           # match POSTGRES_USER for postgres image below
           PGUSER: postgres
-          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Parity.Mox"
+          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Nethermind.Mox"
           ETHEREUM_JSONRPC_WEB_SOCKET_CASE: "EthereumJSONRPC.WebSocket.Case.Mox"
-
-  test_parity_mox_block_scout_web:
+          CHAIN_TYPE: ${{ matrix.chain-type != 'default' && matrix.chain-type || '' }}
+          WETH_TOKEN_TRANSFERS_FILTERING_ENABLED: "true"
+  test_nethermind_mox_block_scout_web:
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
     name: Blockscout Web Tests
-    runs-on: ubuntu-18.04
-    needs: build-and-cache
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-cache
+      - matrix-builder
     services:
+      redis-db:
+        image: "redis:alpine"
+        ports:
+          - 6379:6379
+
       postgres:
-        image: postgres
+        image: postgres:17
         env:
           # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
           POSTGRES_DB: explorer_test
@@ -511,28 +726,28 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
-      - run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $GITHUB_ENV
+          hexpm-mirrors: |
+            https://builds.hex.pm
+            https://cdn.jsdelivr.net/hex
 
       - name: Mix Deps Cache
-        uses: actions/cache@v2
+        uses: actions/cache/restore@v4
         id: deps-cache
         with:
-          path: | 
+          path: |
             deps
             _build
-          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_11-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
-
+            ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash-
 
       - name: Restore Explorer NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: explorer-npm-cache
         with:
           path: apps/explorer/node_modules
@@ -541,7 +756,7 @@ jobs:
             ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-explorer-npm-
 
       - name: Restore Blockscout Web NPM Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: blockscoutweb-npm-cache
         with:
           path: apps/block_scout_web/assets/node_modules
@@ -555,19 +770,26 @@ jobs:
 
       - run: ./bin/install_chrome_headless.sh
 
-      - name: mix test --exclude no_parity
+      - name: mix test --exclude no_nethermind
         run: |
           mix ecto.create --quiet
           mix ecto.migrate
           cd apps/block_scout_web
           mix compile
-          mix test --no-start --exclude no_parity
+          mix test --no-start --exclude no_nethermind
         env:
           # match POSTGRES_PASSWORD for postgres image below
           PGPASSWORD: postgres
           # match POSTGRES_USER for postgres image below
           PGUSER: postgres
-          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Parity.Mox"
+          ETHEREUM_JSONRPC_CASE: "EthereumJSONRPC.Case.Nethermind.Mox"
           ETHEREUM_JSONRPC_WEB_SOCKET_CASE: "EthereumJSONRPC.WebSocket.Case.Mox"
-          CHAIN_ID: "77"
+          CHAIN_ID: "10200"
+          API_RATE_LIMIT_DISABLED: "true"
+          API_GRAPHQL_RATE_LIMIT_DISABLED: "true"
           ADMIN_PANEL_ENABLED: "true"
+          ACCOUNT_ENABLED: "true"
+          ACCOUNT_REDIS_URL: "redis://localhost:6379"
+          SOURCIFY_INTEGRATION_ENABLED: "true"
+          CHAIN_TYPE: ${{ matrix.chain-type != 'default' && matrix.chain-type || '' }}
+          WETH_TOKEN_TRANSFERS_FILTERING_ENABLED: "true"

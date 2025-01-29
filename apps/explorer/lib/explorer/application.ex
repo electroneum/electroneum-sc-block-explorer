@@ -9,8 +9,10 @@ defmodule Explorer.Application do
 
   alias Explorer.Chain.Cache.{
     Accounts,
+    AddressesTabsCounters,
     AddressSum,
     AddressSumMinusBurnt,
+    BackgroundMigrations,
     Block,
     BlockNumber,
     Blocks,
@@ -18,14 +20,18 @@ defmodule Explorer.Application do
     GasUsage,
     MinMissingBlockNumber,
     NetVersion,
+    PendingBlockOperation,
+    StateChanges,
     Transaction,
     Transactions,
+    TransactionsApiV2,
     Uncles
   }
 
   alias Explorer.Chain.Supply.RSK
 
   alias Explorer.Market.MarketHistoryCache
+  alias Explorer.MicroserviceInterfaces.MultichainSearch
   alias Explorer.Repo.PrometheusLogger
 
   @impl Application
@@ -43,64 +49,171 @@ defmodule Explorer.Application do
     base_children = [
       Explorer.Repo,
       Explorer.Repo.Replica1,
+      Explorer.Vault,
       Supervisor.child_spec({SpandexDatadog.ApiServer, datadog_opts()}, id: SpandexDatadog.ApiServer),
       Supervisor.child_spec({Task.Supervisor, name: Explorer.HistoryTaskSupervisor}, id: Explorer.HistoryTaskSupervisor),
       Supervisor.child_spec({Task.Supervisor, name: Explorer.MarketTaskSupervisor}, id: Explorer.MarketTaskSupervisor),
       Supervisor.child_spec({Task.Supervisor, name: Explorer.GenesisDataTaskSupervisor}, id: GenesisDataTaskSupervisor),
       Supervisor.child_spec({Task.Supervisor, name: Explorer.TaskSupervisor}, id: Explorer.TaskSupervisor),
+      Supervisor.child_spec({Task.Supervisor, name: Explorer.LookUpSmartContractSourcesTaskSupervisor},
+        id: LookUpSmartContractSourcesTaskSupervisor
+      ),
+      Supervisor.child_spec({Task.Supervisor, name: Explorer.WETHMigratorSupervisor}, id: WETHMigratorSupervisor),
       Explorer.SmartContract.SolcDownloader,
       Explorer.SmartContract.VyperDownloader,
       {Registry, keys: :duplicate, name: Registry.ChainEvents, id: Registry.ChainEvents},
       {Admin.Recovery, [[], [name: Admin.Recovery]]},
-      Transaction,
+      Accounts,
       AddressSum,
       AddressSumMinusBurnt,
+      BackgroundMigrations,
       Block,
+      BlockNumber,
       Blocks,
       GasPriceOracle,
       GasUsage,
       NetVersion,
-      BlockNumber,
+      PendingBlockOperation,
+      Transaction,
+      StateChanges,
+      Transactions,
+      TransactionsApiV2,
+      Uncles,
+      AddressesTabsCounters,
       con_cache_child_spec(MarketHistoryCache.cache_name()),
       con_cache_child_spec(RSK.cache_name(), ttl_check_interval: :timer.minutes(1), global_ttl: :timer.minutes(30)),
-      Transactions,
-      Accounts,
-      Uncles
+      {Redix, redix_opts()},
+      {Explorer.Utility.MissingRangesManipulator, []},
+      {Explorer.Utility.ReplicaAccessibilityManager, []}
     ]
 
     children = base_children ++ configurable_children()
 
     opts = [strategy: :one_for_one, name: Explorer.Supervisor, max_restarts: 1_000]
 
-    Supervisor.start_link(children, opts)
+    if Application.get_env(:nft_media_handler, :standalone_media_worker?) do
+      Supervisor.start_link([], opts)
+    else
+      Supervisor.start_link(children, opts)
+    end
   end
 
   defp configurable_children do
-    [
-      configure(Explorer.ExchangeRates),
-      configure(Explorer.ChainSpec.GenesisData),
-      configure(Explorer.KnownTokens),
-      configure(Explorer.Market.History.Cataloger),
-      configure(Explorer.Chain.Cache.TokenExchangeRate),
-      configure(Explorer.Chain.Transaction.History.Historian),
-      configure(Explorer.Chain.Events.Listener),
-      configure(Explorer.Counters.AddressesWithBalanceCounter),
-      configure(Explorer.Counters.AddressesCounter),
-      configure(Explorer.Counters.AddressTransactionsCounter),
-      configure(Explorer.Counters.AddressTokenTransfersCounter),
-      configure(Explorer.Counters.AddressTransactionsGasUsageCounter),
-      configure(Explorer.Counters.AddressTokenUsdSum),
-      configure(Explorer.Counters.TokenHoldersCounter),
-      configure(Explorer.Counters.TokenTransfersCounter),
-      configure(Explorer.Counters.BlockBurnedFeeCounter),
-      configure(Explorer.Counters.BlockPriorityFeeCounter),
-      configure(Explorer.Counters.AverageBlockTime),
-      configure(Explorer.Counters.Bridge),
-      configure(Explorer.Validator.MetadataProcessor),
-      configure(Explorer.Staking.ContractState),
-      configure(MinMissingBlockNumber)
-    ]
-    |> List.flatten()
+    configurable_children_set =
+      [
+        configure(Explorer.ExchangeRates),
+        configure(Explorer.ExchangeRates.TokenExchangeRates),
+        configure(Explorer.ChainSpec.GenesisData),
+        configure(Explorer.Market.History.Cataloger),
+        configure(Explorer.Chain.Cache.ContractsCounter),
+        configure(Explorer.Chain.Cache.NewContractsCounter),
+        configure(Explorer.Chain.Cache.VerifiedContractsCounter),
+        configure(Explorer.Chain.Cache.NewVerifiedContractsCounter),
+        configure(Explorer.Chain.Cache.TransactionActionTokensData),
+        configure(Explorer.Chain.Cache.TransactionActionUniswapPools),
+        configure(Explorer.Chain.Cache.WithdrawalsSum),
+        configure(Explorer.Chain.Transaction.History.Historian),
+        configure(Explorer.Chain.Events.Listener),
+        configure(Explorer.Counters.AddressesWithBalanceCounter),
+        configure(Explorer.Counters.AddressesCounter),
+        configure(Explorer.Counters.AddressTransactionsCounter),
+        configure(Explorer.Counters.AddressTokenTransfersCounter),
+        configure(Explorer.Counters.AddressTransactionsGasUsageCounter),
+        configure(Explorer.Counters.AddressTokenUsdSum),
+        configure(Explorer.Counters.TokenHoldersCounter),
+        configure(Explorer.Counters.TokenTransfersCounter),
+        configure(Explorer.Counters.BlockBurntFeeCounter),
+        configure(Explorer.Counters.BlockPriorityFeeCounter),
+        configure(Explorer.Counters.AverageBlockTime),
+        configure(Explorer.Counters.LastOutputRootSizeCounter),
+        configure(Explorer.Counters.FreshPendingTransactionsCounter),
+        configure(Explorer.Counters.Transactions24hStats),
+        configure(Explorer.Validator.MetadataProcessor),
+        configure(Explorer.Tags.AddressTag.Cataloger),
+        configure(Explorer.SmartContract.CertifiedSmartContractCataloger),
+        configure(MinMissingBlockNumber),
+        configure(Explorer.Chain.Fetcher.CheckBytecodeMatchingOnDemand),
+        configure(Explorer.Chain.Fetcher.FetchValidatorInfoOnDemand),
+        configure(Explorer.TokenInstanceOwnerAddressMigration.Supervisor),
+        configure_sc_microservice(Explorer.Chain.Fetcher.LookUpSmartContractSourcesOnDemand),
+        configure(Explorer.Chain.Cache.RootstockLockedBTC),
+        configure(Explorer.Chain.Cache.OptimismFinalizationPeriod),
+        configure(Explorer.Migrator.TransactionsDenormalization),
+        configure(Explorer.Migrator.AddressCurrentTokenBalanceTokenType),
+        configure(Explorer.Migrator.AddressTokenBalanceTokenType),
+        configure(Explorer.Migrator.SanitizeMissingBlockRanges),
+        configure(Explorer.Migrator.SanitizeIncorrectNFTTokenTransfers),
+        configure(Explorer.Migrator.TokenTransferTokenType),
+        configure(Explorer.Migrator.SanitizeIncorrectWETHTokenTransfers),
+        configure(Explorer.Migrator.TransactionBlockConsensus),
+        configure(Explorer.Migrator.TokenTransferBlockConsensus),
+        configure(Explorer.Migrator.RestoreOmittedWETHTransfers),
+        configure(Explorer.Migrator.FilecoinPendingAddressOperations),
+        Explorer.Migrator.BackfillMultichainSearchDB
+        |> configure_mode_dependent_process(:indexer)
+        |> configure_multichain_search_microservice(),
+        configure_mode_dependent_process(Explorer.Migrator.ArbitrumDaRecordsNormalization, :indexer),
+        configure_mode_dependent_process(Explorer.Migrator.ShrinkInternalTransactions, :indexer),
+        configure_chain_type_dependent_process(Explorer.Chain.Cache.BlackfortValidatorsCounters, :blackfort),
+        configure_chain_type_dependent_process(Explorer.Chain.Cache.StabilityValidatorsCounters, :stability),
+        Explorer.Migrator.SanitizeDuplicatedLogIndexLogs
+        |> configure()
+        |> configure_chain_type_dependent_process([
+          :polygon_zkevm,
+          :rsk,
+          :filecoin
+        ]),
+        configure_mode_dependent_process(Explorer.Migrator.SanitizeMissingTokenBalances, :indexer),
+        configure_mode_dependent_process(Explorer.Migrator.SanitizeReplacedTransactions, :indexer),
+        configure_mode_dependent_process(Explorer.Migrator.ReindexInternalTransactionsWithIncompatibleStatus, :indexer),
+        Explorer.Migrator.RefetchContractCodes |> configure() |> configure_chain_type_dependent_process(:zksync),
+        configure(Explorer.Chain.Fetcher.AddressesBlacklist)
+      ]
+      |> List.flatten()
+
+    repos_by_chain_type() ++ account_repo() ++ mud_repo() ++ configurable_children_set
+  end
+
+  defp repos_by_chain_type do
+    if Mix.env() == :test do
+      [
+        Explorer.Repo.Arbitrum,
+        Explorer.Repo.Beacon,
+        Explorer.Repo.Blackfort,
+        Explorer.Repo.BridgedTokens,
+        Explorer.Repo.Celo,
+        Explorer.Repo.Filecoin,
+        Explorer.Repo.Optimism,
+        Explorer.Repo.PolygonEdge,
+        Explorer.Repo.PolygonZkevm,
+        Explorer.Repo.RSK,
+        Explorer.Repo.Scroll,
+        Explorer.Repo.Shibarium,
+        Explorer.Repo.ShrunkInternalTransactions,
+        Explorer.Repo.Stability,
+        Explorer.Repo.Suave,
+        Explorer.Repo.Zilliqa,
+        Explorer.Repo.ZkSync
+      ]
+    else
+      []
+    end
+  end
+
+  defp account_repo do
+    if Application.get_env(:explorer, Explorer.Account)[:enabled] || Mix.env() == :test do
+      [Explorer.Repo.Account]
+    else
+      []
+    end
+  end
+
+  defp mud_repo do
+    if Application.get_env(:explorer, Explorer.Chain.Mud)[:enabled] || Mix.env() == :test do
+      [Explorer.Repo.Mud]
+    else
+      []
+    end
   end
 
   defp should_start?(process) do
@@ -115,37 +228,56 @@ defmodule Explorer.Application do
     end
   end
 
-  defp datadog_port do
-    if System.get_env("DATADOG_PORT") do
-      case Integer.parse(System.get_env("DATADOG_PORT")) do
-        {integer, ""} -> integer
-        _ -> 8126
-      end
+  defp configure_chain_type_dependent_process(process, chain_types) when is_list(chain_types) do
+    if Application.get_env(:explorer, :chain_type) in chain_types do
+      process
     else
-      8126
+      []
     end
+  end
+
+  defp configure_chain_type_dependent_process(process, chain_type) do
+    if Application.get_env(:explorer, :chain_type) == chain_type do
+      process
+    else
+      []
+    end
+  end
+
+  defp configure_mode_dependent_process(process, mode) do
+    if should_start?(process) and Application.get_env(:explorer, :mode) in [mode, :all] do
+      process
+    else
+      []
+    end
+  end
+
+  defp configure_sc_microservice(process) do
+    if Application.get_env(:explorer, Explorer.SmartContract.RustVerifierInterfaceBehaviour)[:eth_bytecode_db?] do
+      process
+    else
+      []
+    end
+  end
+
+  defp configure_multichain_search_microservice(process) do
+    if MultichainSearch.enabled?() do
+      process
+    else
+      []
+    end
+  end
+
+  defp datadog_port do
+    Application.get_env(:explorer, :datadog)[:port]
   end
 
   defp spandex_batch_size do
-    if System.get_env("SPANDEX_BATCH_SIZE") do
-      case Integer.parse(System.get_env("SPANDEX_BATCH_SIZE")) do
-        {integer, ""} -> integer
-        _ -> 100
-      end
-    else
-      100
-    end
+    Application.get_env(:explorer, :spandex)[:batch_size]
   end
 
   defp spandex_sync_threshold do
-    if System.get_env("SPANDEX_SYNC_THRESHOLD") do
-      case Integer.parse(System.get_env("SPANDEX_SYNC_THRESHOLD")) do
-        {integer, ""} -> integer
-        _ -> 100
-      end
-    else
-      100
-    end
+    Application.get_env(:explorer, :spandex)[:sync_threshold]
   end
 
   defp datadog_opts do
@@ -174,5 +306,9 @@ defmodule Explorer.Application do
       },
       id: {ConCache, name}
     )
+  end
+
+  defp redix_opts do
+    {System.get_env("ACCOUNT_REDIS_URL") || "redis://127.0.0.1:6379", [name: :redix]}
   end
 end

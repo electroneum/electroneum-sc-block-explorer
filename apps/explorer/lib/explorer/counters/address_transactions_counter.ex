@@ -3,16 +3,15 @@ defmodule Explorer.Counters.AddressTransactionsCounter do
   Caches Address transactions counter.
   """
   use GenServer
+  use Utils.CompileTimeEnvHelper, enable_consolidation: [:explorer, [__MODULE__, :enable_consolidation]]
 
   alias Ecto.Changeset
-  alias Explorer.{Chain, Repo}
+  alias Explorer.Chain.Address.Counters
   alias Explorer.Counters.Helper
+  alias Explorer.Repo
 
   @cache_name :address_transactions_counter
   @last_update_key "last_update"
-
-  config = Application.get_env(:explorer, __MODULE__)
-  @enable_consolidation Keyword.get(config, :enable_consolidation)
 
   @spec start_link(term()) :: GenServer.on_start()
   def start_link(_) do
@@ -21,7 +20,7 @@ defmodule Explorer.Counters.AddressTransactionsCounter do
 
   @impl true
   def init(_args) do
-    create_cache_table()
+    Helper.create_cache_table(@cache_name)
 
     {:ok, %{consolidate?: enable_consolidation?()}, {:continue, :ok}}
   end
@@ -53,7 +52,7 @@ defmodule Explorer.Counters.AddressTransactionsCounter do
   def cache_name, do: @cache_name
 
   defp cache_expired?(address) do
-    cache_period = address_transactions_counter_cache_period()
+    cache_period = Application.get_env(:explorer, __MODULE__)[:cache_period]
     address_hash_string = to_string(address.hash)
     updated_at = fetch_from_cache("hash_#{address_hash_string}_#{@last_update_key}")
 
@@ -66,18 +65,14 @@ defmodule Explorer.Counters.AddressTransactionsCounter do
 
   defp update_cache(address) do
     address_hash_string = to_string(address.hash)
-    put_into_cache("hash_#{address_hash_string}_#{@last_update_key}", Helper.current_time())
-    new_data = Chain.address_to_transaction_count(address)
-    put_into_cache("hash_#{address_hash_string}", new_data)
+    Helper.put_into_ets_cache(@cache_name, "hash_#{address_hash_string}_#{@last_update_key}", Helper.current_time())
+    new_data = Counters.address_to_transaction_count(address)
+    Helper.put_into_ets_cache(@cache_name, "hash_#{address_hash_string}", new_data)
     put_into_db(address, new_data)
   end
 
   defp fetch_from_cache(key) do
-    Helper.fetch_from_cache(key, @cache_name)
-  end
-
-  defp put_into_cache(key, value) do
-    :ets.insert(@cache_name, {key, value})
+    Helper.fetch_from_ets_cache(key, @cache_name)
   end
 
   defp put_into_db(address, value) do
@@ -86,16 +81,5 @@ defmodule Explorer.Counters.AddressTransactionsCounter do
     |> Repo.update()
   end
 
-  defp create_cache_table do
-    Helper.create_cache_table(@cache_name)
-  end
-
   defp enable_consolidation?, do: @enable_consolidation
-
-  defp address_transactions_counter_cache_period do
-    case Integer.parse(System.get_env("CACHE_ADDRESS_TRANSACTIONS_COUNTER_PERIOD", "")) do
-      {secs, ""} -> :timer.seconds(secs)
-      _ -> :timer.hours(1)
-    end
-  end
 end

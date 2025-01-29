@@ -33,7 +33,7 @@
       # If you create your own checks, you must specify the source files for
       # them here, so they can be loaded by Credo before running the analysis.
       #
-      requires: [],
+      requires: ["apps/utils/lib/credo/**/*.ex"],
       #
       # If you want to enforce a style guide and need a more traditional linting
       # experience, you can change `strict` to `true` below:
@@ -131,7 +131,7 @@
         {Credo.Check.Warning.UnusedRegexOperation},
         {Credo.Check.Warning.UnusedStringOperation},
         {Credo.Check.Warning.UnusedTupleOperation},
-        {Credo.Check.Warning.RaiseInsideRescue, false},
+        {Credo.Check.Warning.RaiseInsideRescue},
 
         # Controversial and experimental checks (opt-in, just remove `, false`)
         #
@@ -140,9 +140,10 @@
         {Credo.Check.Refactor.AppendSingleItem},
         {Credo.Check.Refactor.VariableRebinding},
         {Credo.Check.Warning.MapGetUnsafePass},
-        {Credo.Check.Consistency.MultiAliasImportRequireUse}
+        {Credo.Check.Consistency.MultiAliasImportRequireUse},
 
         # Custom checks can be created using `mix credo.gen.check`.
+        {Utils.Credo.Checks.CompileEnvUsage}
         #
       ]
     }

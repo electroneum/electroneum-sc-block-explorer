@@ -28,7 +28,7 @@ defmodule BlockScoutWeb.ViewingTransactionsTest do
     taft = insert(:address)
 
     # From Lincoln to Taft.
-    txn_from_lincoln =
+    transaction_from_lincoln =
       :transaction
       |> insert(from_address: lincoln, to_address: taft)
       |> with_block(block)
@@ -66,7 +66,7 @@ defmodule BlockScoutWeb.ViewingTransactionsTest do
        lincoln: lincoln,
        taft: taft,
        transaction: transaction,
-       txn_from_lincoln: txn_from_lincoln
+       transaction_from_lincoln: transaction_from_lincoln
      }}
   end
 
@@ -83,7 +83,7 @@ defmodule BlockScoutWeb.ViewingTransactionsTest do
       |> refute_has(TransactionListPage.transaction(pending))
     end
 
-    test "viewing the pending tranasctions list", %{
+    test "viewing the pending transactions list", %{
       pending: pending,
       pending_contract: pending_contract,
       session: session

@@ -21,24 +21,28 @@ defmodule BlockScoutWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import BlockScoutWeb.Router.Helpers
-      import BlockScoutWeb.WebRouter.Helpers, except: [static_path: 2]
+      import BlockScoutWeb.Routers.WebRouter.Helpers, except: [static_path: 2]
+      import BlockScoutWeb.Routers.AccountRouter.Helpers, except: [static_path: 2]
+      import Bureaucrat.Helpers
 
       # The default endpoint for testing
       @endpoint BlockScoutWeb.Endpoint
 
       import Explorer.Factory
 
-      alias BlockScoutWeb.AdminRouter.Helpers, as: AdminRoutes
-      alias BlockScoutWeb.ApiRouter.Helpers, as: ApiRoutes
+      alias BlockScoutWeb.Routers.AdminRouter.Helpers, as: AdminRoutes
+      alias BlockScoutWeb.Routers.ApiRouter.Helpers, as: ApiRoutes
     end
   end
 
   @dialyzer {:nowarn_function, __ex_unit_setup_0: 1}
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Explorer.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Explorer.Repo.Account)
 
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Explorer.Repo.Account, {:shared, self()})
     end
 
     Supervisor.terminate_child(Explorer.Supervisor, Explorer.Chain.Cache.Transactions.child_id())

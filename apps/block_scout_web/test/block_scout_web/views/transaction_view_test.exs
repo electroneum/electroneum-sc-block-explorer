@@ -1,6 +1,8 @@
 defmodule BlockScoutWeb.TransactionViewTest do
   use BlockScoutWeb.ConnCase, async: true
 
+  import Mox
+
   alias Explorer.Chain.Wei
   alias Explorer.Repo
   alias BlockScoutWeb.{BlockView, TransactionView}
@@ -35,7 +37,7 @@ defmodule BlockScoutWeb.TransactionViewTest do
       assert pending.inserted_at == TransactionView.block_timestamp(pending)
     end
 
-    test "returns timestamp for block for collacted transaction" do
+    test "returns timestamp for block for collated transaction" do
       block = insert(:block)
 
       transaction =
@@ -192,7 +194,7 @@ defmodule BlockScoutWeb.TransactionViewTest do
         |> insert()
         |> with_block(block, status: :error)
 
-      insert(:pending_block_operation, block_hash: block.hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: block.hash, block_number: block.number)
 
       status = TransactionView.transaction_status(transaction)
       assert TransactionView.formatted_result(status) == "Error: (Awaiting internal transactions for reason)"
@@ -276,14 +278,106 @@ defmodule BlockScoutWeb.TransactionViewTest do
 
       token = insert(:token)
 
-      token_transfer1 = insert(:token_transfer, transaction: transaction, token: token, token_id: 1, amount: nil)
-      token_transfer2 = insert(:token_transfer, transaction: transaction, token: token, token_id: 2, amount: nil)
-      token_transfer3 = insert(:token_transfer, transaction: transaction, token: token, token_id: 3, amount: nil)
+      token_transfer1 = insert(:token_transfer, transaction: transaction, token: token, token_ids: [1], amount: nil)
+      token_transfer2 = insert(:token_transfer, transaction: transaction, token: token, token_ids: [2], amount: nil)
+      token_transfer3 = insert(:token_transfer, transaction: transaction, token: token, token_ids: [3], amount: nil)
 
       result = TransactionView.aggregate_token_transfers([token_transfer1, token_transfer2, token_transfer3])
 
       assert Enum.count(result.transfers) == 3
       assert List.first(result.transfers).amount == nil
+    end
+  end
+
+  describe "transaction_revert_reason/2" do
+    test "handles transactions with gas_price set to nil" do
+      transaction =
+        :transaction
+        |> insert(error: "execution reverted")
+        |> with_block()
+        |> Map.put(:gas_price, nil)
+
+      hex_reason =
+        "0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002b556e69737761705632526f757465723a20494e53554646494349454e545f4f55545055545f414d4f554e54000000000000000000000000000000000000000000"
+
+      expect(
+        EthereumJSONRPC.Mox,
+        :json_rpc,
+        fn
+          [%{method: "debug_traceTransaction"}], _options ->
+            {:ok,
+             [
+               %{
+                 id: 0,
+                 result: %{
+                   "from" => "0x6a17ca3bbf83764791f4a9f2b4dbbaebbc8b3e0d",
+                   "gas" => "0x5208",
+                   "gasUsed" => "0x5208",
+                   "input" => "0x01",
+                   "output" => hex_reason,
+                   "to" => "0x7ed1e469fcb3ee19c0366d829e291451be638e59",
+                   "type" => "CALL",
+                   "value" => "0x86b3"
+                 }
+               }
+             ]}
+
+          [%{method: "trace_replayTransaction"}], _options ->
+            {:ok,
+             [
+               %{
+                 id: 0,
+                 result: %{
+                   "output" => "0x",
+                   "stateDiff" => nil,
+                   "trace" => [
+                     %{
+                       "action" => %{
+                         "callType" => "call",
+                         "from" => "0x6a17ca3bbf83764791f4a9f2b4dbbaebbc8b3e0d",
+                         "gas" => "0x5208",
+                         "input" => "0x01",
+                         "to" => "0x7ed1e469fcb3ee19c0366d829e291451be638e59",
+                         "value" => "0x86b3"
+                       },
+                       "error" => "Reverted",
+                       "result" => %{
+                         "gasUsed" => "0x5208",
+                         "output" => hex_reason
+                       },
+                       "subtraces" => 0,
+                       "traceAddress" => [],
+                       "type" => "call"
+                     }
+                   ],
+                   "transactionHash" => "0xdf5574290913659a1ac404ccf2d216c40587f819400a52405b081dda728ac120",
+                   "vmTrace" => nil
+                 }
+               }
+             ]}
+
+          %{method: "eth_call"}, _options ->
+            {:error,
+             %{
+               code: 3,
+               data: hex_reason,
+               message: "execution reverted"
+             }}
+        end
+      )
+
+      init_config = Application.get_env(:ethereum_jsonrpc, EthereumJSONRPC.Geth)
+      Application.put_env(:ethereum_jsonrpc, EthereumJSONRPC.Geth, tracer: "call_tracer", debug_trace_timeout: "5s")
+
+      revert_reason = TransactionView.transaction_revert_reason(transaction, nil)
+
+      assert revert_reason ==
+               {:ok, "08c379a0", "Error(string reason)",
+                [
+                  {"reason", "string", "UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"}
+                ]}
+
+      Application.put_env(:ethereum_jsonrpc, EthereumJSONRPC.Geth, init_config)
     end
   end
 end

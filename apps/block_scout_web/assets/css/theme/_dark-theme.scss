@@ -3,6 +3,8 @@ $dark-bg: #22223a; // hero shade
 $dark-light-bg: #282945; // pills bg shade
 $dark-light: #313355; // tile light top share
 $dark-stakes-banned-background: #3e314c;
+$dashboard-banner-network-stats-item-before-background-color-dark-mode: $dark-secondary !default;
+$header-links-background-color-dark-mode: $dark-light !default;
 
 $ETN-blue:#4FE8D6 !default;
 $ETN-dark-blue:#042B45 !default;
@@ -56,6 +58,10 @@ $labels-dark: $ETN-blue; // Old value: #52dbff; Changed to ETN-blue to match all
 				background-color: $dark-light-bg;
 			}
 		}
+		.nav-submenu {
+			color: $labels-dark;
+			background-color: $header-links-background-color-dark-mode;
+		}
 	}
 	.navbar-brand .navbar-logo {
 		filter: brightness(0) invert(1);
@@ -101,7 +107,7 @@ $labels-dark: $ETN-blue; // Old value: #52dbff; Changed to ETN-blue to match all
 	}
 	.footer-social-icon:hover,
 	.footer-link:hover {
-		color: $ETN-blue; 
+		color: $ETN-blue;
 	}
 	.footer-list ul li::before {
 		background-color: $ETN-blue;
@@ -122,7 +128,7 @@ $labels-dark: $ETN-blue; // Old value: #52dbff; Changed to ETN-blue to match all
 		color: $labels-dark;
 	}
 	.dashboard-banner-network-stats-item::before {
-		background-color: $dark-secondary;
+		background-color: $dashboard-banner-network-stats-item-before-background-color-dark-mode !important;
 	}
 	.dashboard-banner-chart-legend .dashboard-banner-chart-legend-item {
 		&.price-per-day {
@@ -307,11 +313,6 @@ $labels-dark: $ETN-blue; // Old value: #52dbff; Changed to ETN-blue to match all
 		}
 	}
 
-	.pagination-container .pagination .page-item.active .page-link{
-		background-color: $ETN-blue;
-		border-color: $ETN-blue;
-	}
-
 	// dropdown
 	.dropdown-menu {
 		background-color: $dark-light;
@@ -426,7 +427,7 @@ $labels-dark: $ETN-blue; // Old value: #52dbff; Changed to ETN-blue to match all
 	}
 
 	// download csv button
-	.download-all-transactions .download-all-transactions-link svg path {
+	.download-all-items .download-all-items-link svg path {
 		fill: $ETN-blue;
 	}
 
@@ -456,62 +457,6 @@ $labels-dark: $ETN-blue; // Old value: #52dbff; Changed to ETN-blue to match all
 	.tooltip-pale-color.bs-tooltip-left .arrow::before,
 	.tooltip-pale-color.bs-tooltip-auto[x-placement^="left"] .arrow::before {
 		border-left-color: rgba(#fff, 0.5) !important;
-	}
-
-	//network select
-	.network-selector-overlay {
-		background-color: rgba($dark-bg, .9);
-	}
-	.network-selector {
-		background-color: $dark-light-bg;
-	}
-	.network-selector-title {
-		color: #fff;
-	}
-	.network-selector-text {
-		color: $labels-dark;
-	}
-	.network-selector-close path {
-		fill: #fff;
-	}
-	.network-selector-search-container {
-		background-color: $dark-light;
-	}
-	.network-selector-search-container path {
-		fill: $labels-dark;
-	}
-	.network-selector-search-input {
-		color: #fff !important;
-		&::placeholder {
-			color: $labels-dark;
-		}
-	}
-	.network-selector-tab {
-		color: $labels-dark;
-		&:hover, &.active {
-			color: #fff;
-		}
-		&.active {
-			&:after {
-				background-color: $ETN-blue;
-			}
-		}
-	}
-	.network-selector-item,
-	.network-selector-tabs-container {
-		border-bottom-color: darken($labels-dark, 30);
-	}
-	.network-selector-item-title {
-		color: #fff;
-	}
-	.network-selector-item-type {
-		color: $labels-dark;
-	}
-	.radio .radio-icon {
-		border-color: $labels-dark
-	}
-	.network-selector-item-url:hover .network-selector-item-type {
-		color: #fff;
 	}
 
 	//coin dropdown
@@ -574,7 +519,7 @@ $labels-dark: $ETN-blue; // Old value: #52dbff; Changed to ETN-blue to match all
 		color: #fff;
 	}
 
-	// info allert
+	// info alert
 	.alert-info {
 		color: $labels-dark;
 		background-color: $dark-light;

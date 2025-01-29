@@ -1,16 +1,14 @@
 defmodule BlockScoutWeb.API.V1.DecompiledSmartContractController do
   use BlockScoutWeb, :controller
 
-  alias BlockScoutWeb.API.APILogger
   alias Explorer.Chain
-  alias Explorer.Chain.Hash.Address
+  alias Explorer.Chain.Address
+  alias Explorer.Chain.Hash.Address, as: AddressHash
 
   def create(conn, params) do
-    APILogger.log(conn)
-
     if auth_token(conn) == actual_token() do
       with {:ok, hash} <- validate_address_hash(params["address_hash"]),
-           :ok <- Chain.check_address_exists(hash),
+           :ok <- Address.check_address_exists(hash),
            {:contract, :not_found} <-
              {:contract, Chain.check_decompiled_contract_exists(params["address_hash"], params["decompiler_version"])} do
         case Chain.create_decompiled_smart_contract(params) do
@@ -18,11 +16,7 @@ defmodule BlockScoutWeb.API.V1.DecompiledSmartContractController do
             send_resp(conn, :created, encode(decompiled_smart_contract))
 
           {:error, changeset} ->
-            errors =
-              changeset.errors
-              |> Enum.into(%{}, fn {field, {message, _}} ->
-                {field, message}
-              end)
+            errors = parse_changeset_errors(changeset)
 
             send_resp(conn, :unprocessable_entity, encode(errors))
         end
@@ -45,8 +39,15 @@ defmodule BlockScoutWeb.API.V1.DecompiledSmartContractController do
     end
   end
 
+  defp parse_changeset_errors(changeset) do
+    changeset.errors
+    |> Enum.into(%{}, fn {field, {message, _}} ->
+      {field, message}
+    end)
+  end
+
   defp validate_address_hash(address_hash) do
-    case Address.cast(address_hash) do
+    case AddressHash.cast(address_hash) do
       {:ok, hash} -> {:ok, hash}
       :error -> :invalid_address
     end

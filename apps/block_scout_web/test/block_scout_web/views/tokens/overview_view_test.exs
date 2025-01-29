@@ -144,24 +144,24 @@ defmodule BlockScoutWeb.Tokens.OverviewViewTest do
       token =
         :token
         |> build(decimals: Decimal.new(0), total_supply: Decimal.new(20))
-        |> Map.put(:usd_value, Decimal.new(10))
+        |> Map.put(:fiat_value, Decimal.new(10))
         |> Map.put(:custom_cap, nil)
 
       result = OverviewView.total_supply_usd(token)
 
-      assert Decimal.cmp(result, Decimal.new(200)) == :eq
+      assert Decimal.compare(result, Decimal.new(200)) == :eq
     end
 
     test "takes decimals into account" do
       token =
         :token
         |> build(decimals: Decimal.new(1), total_supply: Decimal.new(20))
-        |> Map.put(:usd_value, Decimal.new(10))
+        |> Map.put(:fiat_value, Decimal.new(10))
         |> Map.put(:custom_cap, nil)
 
       result = OverviewView.total_supply_usd(token)
 
-      assert Decimal.cmp(result, Decimal.new(20)) == :eq
+      assert Decimal.compare(result, Decimal.new(20)) == :eq
     end
   end
 end

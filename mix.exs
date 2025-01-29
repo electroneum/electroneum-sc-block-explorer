@@ -5,13 +5,13 @@ defmodule BlockScout.Mixfile do
 
   def project do
     [
-      app: :block_scout,
+      # app: :block_scout,
       # aliases: aliases(config_env()),
-      version: "4.1.3",
+      version: "6.10.2",
       apps_path: "apps",
       deps: deps(),
       dialyzer: dialyzer(),
-      elixir: "~> 1.12",
+      elixir: "~> 1.17",
       preferred_cli_env: [
         credo: :test,
         dialyzer: :test
@@ -23,8 +23,12 @@ defmodule BlockScout.Mixfile do
             block_scout_web: :permanent,
             ethereum_jsonrpc: :permanent,
             explorer: :permanent,
-            indexer: :permanent
-          ]
+            indexer: :permanent,
+            utils: :permanent,
+            nft_media_handler: :permanent
+          ],
+          steps: [:assemble, &copy_prod_runtime_config/1],
+          validate_compile_env: false
         ]
       ]
     ]
@@ -32,10 +36,26 @@ defmodule BlockScout.Mixfile do
 
   ## Private Functions
 
+  defp copy_prod_runtime_config(%Mix.Release{path: path} = release) do
+    File.mkdir_p!(Path.join([path, "config", "runtime"]))
+    File.cp!(Path.join(["config", "runtime", "prod.exs"]), Path.join([path, "config", "runtime", "prod.exs"]))
+    File.mkdir_p!(Path.join([path, "apps", "explorer", "config", "prod"]))
+
+    File.cp_r!(
+      Path.join(["apps", "explorer", "config", "prod"]),
+      Path.join([path, "apps", "explorer", "config", "prod"])
+    )
+
+    File.mkdir_p!(Path.join([path, "apps", "indexer", "config", "prod"]))
+    File.cp_r!(Path.join(["apps", "indexer", "config", "prod"]), Path.join([path, "apps", "indexer", "config", "prod"]))
+
+    release
+  end
+
   defp dialyzer() do
     [
-      plt_add_deps: :transitive,
-      plt_add_apps: ~w(ex_unit mix)a,
+      plt_add_deps: :app_tree,
+      plt_add_apps: ~w(credo ex_unit mix wallaby)a,
       ignore_warnings: ".dialyzer-ignore",
       plt_core_path: "priv/plts",
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
@@ -74,10 +94,11 @@ defmodule BlockScout.Mixfile do
   # and cannot be accessed from applications inside the apps folder
   defp deps do
     [
-      {:absinthe_plug, git: "https://github.com/blockscout/absinthe_plug.git", tag: "1.5.3", override: true},
-      {:tesla, "~> 1.3.3"},
+      {:prometheus_ex, git: "https://github.com/lanodan/prometheus.ex", branch: "fix/elixir-1.14", override: true},
+      {:absinthe_plug, git: "https://github.com/blockscout/absinthe_plug.git", tag: "1.5.8", override: true},
+      {:tesla, "~> 1.13.0"},
       # Documentation
-      {:ex_doc, "~> 0.28.2", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.36.1", only: :dev, runtime: false},
       {:number, "~> 1.0.3"}
     ]
   end

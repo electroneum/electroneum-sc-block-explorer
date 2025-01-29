@@ -3,7 +3,7 @@ defmodule Indexer.Fetcher.ReplacedTransaction do
   Finds and updates replaced transactions.
   """
 
-  use Indexer.Fetcher
+  use Indexer.Fetcher, restart: :permanent
   use Spandex.Decorators
 
   require Logger
@@ -25,19 +25,22 @@ defmodule Indexer.Fetcher.ReplacedTransaction do
     metadata: [fetcher: :replaced_transaction]
   ]
 
-  @spec async_fetch([
-          %{
-            required(:nonce) => non_neg_integer,
-            required(:from_address_hash) => Hash.Address.t(),
-            required(:block_hash) => Hash.Full.t()
-          }
-        ]) :: :ok
-  def async_fetch(transactions_fields, timeout \\ 5000) when is_list(transactions_fields) do
+  @spec async_fetch(
+          [
+            %{
+              required(:nonce) => non_neg_integer,
+              required(:from_address_hash) => Hash.Address.t(),
+              required(:block_hash) => Hash.Full.t()
+            }
+          ],
+          boolean()
+        ) :: :ok
+  def async_fetch(transactions_fields, realtime?, timeout \\ 5000) when is_list(transactions_fields) do
     if ReplacedTransactionSupervisor.disabled?() do
       :ok
     else
       entries = Enum.map(transactions_fields, &entry/1)
-      BufferedTask.buffer(__MODULE__, entries, timeout)
+      BufferedTask.buffer(__MODULE__, entries, realtime?, timeout)
     end
   end
 
@@ -61,7 +64,8 @@ defmodule Indexer.Fetcher.ReplacedTransaction do
           transaction_fields
           |> pending_entry()
           |> reducer.(acc)
-        end
+        end,
+        true
       )
 
     final
@@ -123,7 +127,7 @@ defmodule Indexer.Fetcher.ReplacedTransaction do
         Logger.error(fn ->
           [
             "failed to update replaced transactions for transactions: ",
-            inspect(reason)
+            Exception.format(:error, reason, __STACKTRACE__)
           ]
         end)
 

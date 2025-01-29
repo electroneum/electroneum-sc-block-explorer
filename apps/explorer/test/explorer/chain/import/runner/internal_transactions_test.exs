@@ -6,9 +6,9 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
   alias Explorer.Chain.Import.Runner.InternalTransactions
 
   describe "run/1" do
-    test "transaction's status becomes :error when its internal_transaction has an error" do
+    test "transaction's status doesn't become :error when its internal_transaction has an error" do
       transaction = insert(:transaction) |> with_block(status: :ok)
-      insert(:pending_block_operation, block_hash: transaction.block_hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
 
       assert :ok == transaction.status
 
@@ -19,15 +19,15 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
 
       assert {:ok, _} = run_internal_transactions([internal_transaction_changes])
 
-      assert :error == Repo.get(Transaction, transaction.hash).status
+      assert :ok == Repo.get(Transaction, transaction.hash).status
     end
 
-    test "transaction's has_error_in_internal_txs become true when its internal_transaction (where index != 0) has an error" do
+    test "transaction's has_error_in_internal_transactions become true when its internal_transaction (where index != 0) has an error" do
       transaction = insert(:transaction) |> with_block(status: :ok)
-      insert(:pending_block_operation, block_hash: transaction.block_hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
 
       assert :ok == transaction.status
-      assert nil == transaction.has_error_in_internal_txs
+      assert nil == transaction.has_error_in_internal_transactions
 
       index = 0
       error = nil
@@ -40,18 +40,18 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
       internal_transaction_changes_1 = make_internal_transaction_changes(transaction, index, error)
 
       assert {:ok, _} = run_internal_transactions([internal_transaction_changes, internal_transaction_changes_1])
-      tx = Repo.get(Transaction, transaction.hash)
-
-      assert :ok == tx.status
-      assert true == tx.has_error_in_internal_txs
-    end
-
-    test "transaction's has_error_in_internal_txs become false when its internal_transaction (where index == 0) has an error" do
-      transaction = insert(:transaction) |> with_block(status: :ok)
-      insert(:pending_block_operation, block_hash: transaction.block_hash, fetch_internal_transactions: true)
+      transaction = Repo.get(Transaction, transaction.hash)
 
       assert :ok == transaction.status
-      assert nil == transaction.has_error_in_internal_txs
+      assert true == transaction.has_error_in_internal_transactions
+    end
+
+    test "transaction's has_error_in_internal_transactions become false when its internal_transaction (where index == 0) has an error" do
+      transaction = insert(:transaction) |> with_block(status: :ok)
+      insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
+
+      assert :ok == transaction.status
+      assert nil == transaction.has_error_in_internal_transactions
 
       index = 0
       error = "Reverted"
@@ -59,18 +59,18 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
       internal_transaction_changes = make_internal_transaction_changes(transaction, index, error)
 
       assert {:ok, _} = run_internal_transactions([internal_transaction_changes])
-      tx = Repo.get(Transaction, transaction.hash)
-
-      assert :error == tx.status
-      assert false == tx.has_error_in_internal_txs
-    end
-
-    test "transaction's has_error_in_internal_txs become false when its internal_transaction has no error" do
-      transaction = insert(:transaction) |> with_block(status: :ok)
-      insert(:pending_block_operation, block_hash: transaction.block_hash, fetch_internal_transactions: true)
+      transaction = Repo.get(Transaction, transaction.hash)
 
       assert :ok == transaction.status
-      assert nil == transaction.has_error_in_internal_txs
+      assert false == transaction.has_error_in_internal_transactions
+    end
+
+    test "transaction's has_error_in_internal_transactions become false when its internal_transaction has no error" do
+      transaction = insert(:transaction) |> with_block(status: :ok)
+      insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
+
+      assert :ok == transaction.status
+      assert nil == transaction.has_error_in_internal_transactions
 
       index = 0
       error = nil
@@ -84,15 +84,15 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
 
       assert {:ok, _} = run_internal_transactions([internal_transaction_changes, internal_transaction_changes_1])
 
-      tx = Repo.get(Transaction, transaction.hash)
+      transaction = Repo.get(Transaction, transaction.hash)
 
-      assert :ok == tx.status
-      assert false == tx.has_error_in_internal_txs
+      assert :ok == transaction.status
+      assert false == transaction.has_error_in_internal_transactions
     end
 
-    test "simple coin transfer's status becomes :error when its internal_transaction has an error" do
+    test "simple coin transfer's status doesn't become :error when its internal_transaction has an error" do
       transaction = insert(:transaction) |> with_block(status: :ok)
-      insert(:pending_block_operation, block_hash: transaction.block_hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
 
       assert :ok == transaction.status
 
@@ -104,15 +104,15 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
 
       assert {:ok, _} = run_internal_transactions([internal_transaction_changes])
 
-      assert :error == Repo.get(Transaction, transaction.hash).status
+      assert :ok == Repo.get(Transaction, transaction.hash).status
     end
 
-    test "for block with 2 simple coin transfer's statuses become :error when its both internal_transactions has an error" do
+    test "for block with 2 simple coin transfer's statuses doesn't become :error even when its both internal_transactions has an error" do
       a_block = insert(:block, number: 1000)
       transaction1 = insert(:transaction) |> with_block(a_block, status: :ok)
       transaction2 = insert(:transaction) |> with_block(a_block, status: :ok)
 
-      insert(:pending_block_operation, block_hash: a_block.hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: a_block.hash, block_number: a_block.number)
 
       assert :ok == transaction1.status
       assert :ok == transaction2.status
@@ -128,40 +128,16 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
 
       assert {:ok, _} = run_internal_transactions([internal_transaction_changes_1, internal_transaction_changes_2])
 
-      assert :error == Repo.get(Transaction, transaction1.hash).status
-      assert :error == Repo.get(Transaction, transaction2.hash).status
-    end
-
-    test "for block with 2 simple coin transfer's only status become :error for tx where internal_transactions has an error" do
-      a_block = insert(:block, number: 1000)
-      transaction1 = insert(:transaction) |> with_block(a_block, status: :ok)
-      transaction2 = insert(:transaction) |> with_block(a_block, status: :ok)
-      insert(:pending_block_operation, block_hash: a_block.hash, fetch_internal_transactions: true)
-
-      assert :ok == transaction1.status
-      assert :ok == transaction2.status
-
-      index = 0
-      error = "Out of gas"
-
-      internal_transaction_changes_1 =
-        make_internal_transaction_changes_for_simple_coin_transfers(transaction1, index, error)
-
-      internal_transaction_changes_2 =
-        make_internal_transaction_changes_for_simple_coin_transfers(transaction2, index, nil)
-
-      assert {:ok, _} = run_internal_transactions([internal_transaction_changes_1, internal_transaction_changes_2])
-
-      assert :error == Repo.get(Transaction, transaction1.hash).status
+      assert :ok == Repo.get(Transaction, transaction1.hash).status
       assert :ok == Repo.get(Transaction, transaction2.hash).status
     end
 
-    test "for block with simple coin transfer and method calls, method calls internal txs have correct block_index" do
+    test "for block with simple coin transfer and method calls, method calls internal transactions have correct block_index" do
       a_block = insert(:block, number: 1000)
       transaction0 = insert(:transaction) |> with_block(a_block, status: :ok)
       transaction1 = insert(:transaction) |> with_block(a_block, status: :ok)
       transaction2 = insert(:transaction) |> with_block(a_block, status: :ok)
-      insert(:pending_block_operation, block_hash: a_block.hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: a_block.hash, block_number: a_block.number)
 
       assert :ok == transaction0.status
       assert :ok == transaction1.status
@@ -187,41 +163,44 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
                  internal_transaction_changes_2_1
                ])
 
-      assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction0.hash, where: i.index == 0)
-             |> Repo.one()
-             |> is_nil()
+      # transaction with index 0 is ignored in Nethermind JSON RPC Variant and not ignored in case of Geth
+
+      # assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction0.hash, where: i.index == 0)
+      #        |> Repo.one()
+      #        |> is_nil()
 
       assert 1 == Repo.get_by!(InternalTransaction, transaction_hash: transaction0.hash, index: 1).block_index
-      assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction1.hash) |> Repo.one() |> is_nil()
+      # assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction1.hash) |> Repo.one() |> is_nil()
 
-      assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction2.hash, where: i.index == 0)
-             |> Repo.one()
-             |> is_nil()
+      # assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction2.hash, where: i.index == 0)
+      #        |> Repo.one()
+      #        |> is_nil()
 
       assert 4 == Repo.get_by!(InternalTransaction, transaction_hash: transaction2.hash, index: 1).block_index
     end
 
-    test "simple coin transfer has no internal transaction inserted" do
-      transaction = insert(:transaction) |> with_block(status: :ok)
-      insert(:pending_block_operation, block_hash: transaction.block_hash, fetch_internal_transactions: true)
+    # test "simple coin transfer has no internal transaction inserted for Nethermind" do
+    #   transaction = insert(:transaction) |> with_block(status: :ok)
+    #   insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
 
-      assert :ok == transaction.status
+    #   assert :ok == transaction.status
 
-      index = 0
+    #   # transaction with index 0 is ignored in Nethermind JSON RPC Variant and not ignored in case of Geth
+    #   index = 0
 
-      internal_transaction_changes =
-        make_internal_transaction_changes_for_simple_coin_transfers(transaction, index, nil)
+    #   internal_transaction_changes =
+    #     make_internal_transaction_changes_for_simple_coin_transfers(transaction, index, nil)
 
-      assert {:ok, _} = run_internal_transactions([internal_transaction_changes])
+    #   assert {:ok, _} = run_internal_transactions([internal_transaction_changes])
 
-      assert !Repo.exists?(from(i in InternalTransaction, where: i.transaction_hash == ^transaction.hash))
-    end
+    #   assert !Repo.exists?(from(i in InternalTransaction, where: i.transaction_hash == ^transaction.hash))
+    # end
 
     test "pending transactions don't get updated not its internal_transactions inserted" do
       transaction = insert(:transaction) |> with_block(status: :ok)
       pending = insert(:transaction)
 
-      insert(:pending_block_operation, block_hash: transaction.block_hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
 
       assert :ok == transaction.status
       assert is_nil(pending.block_hash)
@@ -246,14 +225,14 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
       empty_block = insert(:block)
       pending = insert(:transaction)
 
-      insert(:pending_block_operation, block_hash: empty_block.hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: empty_block.hash, block_number: empty_block.number)
 
       assert is_nil(pending.block_hash)
 
       full_block = insert(:block)
       inserted = insert(:transaction) |> with_block(full_block)
 
-      insert(:pending_block_operation, block_hash: full_block.hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: full_block.hash, block_number: full_block.number)
 
       assert full_block.hash == inserted.block_hash
 
@@ -277,65 +256,101 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
       assert PendingBlockOperation |> Repo.get(full_block.hash) |> is_nil()
     end
 
-    test "removes old records with the same primary key (transaction_hash, index)" do
-      full_block = insert(:block)
-      another_full_block = insert(:block)
+    if Application.compile_env(:explorer, :chain_type) != :zetachain do
+      test "sets refetch_needed=true for blocks where not all transactions are filled" do
+        full_block = insert(:block)
+        transaction_a = insert(:transaction) |> with_block(full_block)
+        transaction_b = insert(:transaction) |> with_block(full_block)
 
-      transaction = insert(:transaction) |> with_block(full_block)
+        insert(:pending_block_operation, block_hash: full_block.hash, block_number: full_block.number)
 
-      insert(:internal_transaction,
-        index: 0,
-        transaction: transaction,
-        block_hash: another_full_block.hash,
-        block_index: 0
-      )
+        transaction_a_changes = make_internal_transaction_changes(transaction_a, 0, nil)
 
-      insert(:pending_block_operation, block_hash: full_block.hash, fetch_internal_transactions: true)
+        assert {:ok, _} = run_internal_transactions([transaction_a_changes])
 
-      transaction_changes = make_internal_transaction_changes(transaction, 0, nil)
+        assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction_a.hash)
+               |> Repo.one()
+               |> is_nil()
 
-      assert {:ok, %{remove_left_over_internal_transactions: {1, nil}}} =
-               run_internal_transactions([transaction_changes])
+        assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction_b.hash)
+               |> Repo.one()
+               |> is_nil()
 
-      assert from(i in InternalTransaction,
-               where: i.transaction_hash == ^transaction.hash and i.block_hash == ^another_full_block.hash
-             )
-             |> Repo.one()
-             |> is_nil()
+        assert %{consensus: true, refetch_needed: true} = Repo.get(Block, full_block.hash)
+        assert not is_nil(Repo.get(PendingBlockOperation, full_block.hash))
+      end
+
+      test "does not set refetch_needed=true from non-traceable blocks" do
+        original_config = Application.get_env(:indexer, :trace_block_ranges)
+
+        full_block = insert(:block)
+        transaction_a = insert(:transaction) |> with_block(full_block)
+        transaction_b = insert(:transaction) |> with_block(full_block)
+
+        Application.put_env(:indexer, :trace_block_ranges, "#{full_block.number + 1}..latest")
+
+        insert(:pending_block_operation, block_hash: full_block.hash, block_number: full_block.number)
+
+        transaction_a_changes = make_internal_transaction_changes(transaction_a, 0, nil)
+
+        assert {:ok, _} = run_internal_transactions([transaction_a_changes])
+
+        assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction_a.hash)
+               |> Repo.one()
+               |> is_nil()
+
+        assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction_b.hash)
+               |> Repo.one()
+               |> is_nil()
+
+        assert %{consensus: true, refetch_needed: false} = Repo.get(Block, full_block.hash)
+
+        on_exit(fn -> Application.put_env(:indexer, :trace_block_ranges, original_config) end)
+      end
     end
 
-    test "removes consensus to blocks where not all transactions are filled" do
-      full_block = insert(:block)
-      transaction_a = insert(:transaction) |> with_block(full_block)
-      transaction_b = insert(:transaction) |> with_block(full_block)
+    if Application.compile_env(:explorer, :chain_type) == :zetachain do
+      test "does not set refetch_needed=true from non-traceable blocks (zetachain)" do
+        original_config = Application.get_env(:indexer, :trace_block_ranges)
 
-      insert(:pending_block_operation, block_hash: full_block.hash, fetch_internal_transactions: true)
+        full_block = insert(:block)
+        transaction = insert(:transaction) |> with_block(full_block)
 
-      transaction_a_changes = make_internal_transaction_changes(transaction_a, 0, nil)
+        Application.put_env(:indexer, :trace_block_ranges, "#{full_block.number + 1}..latest")
 
-      assert {:ok, _} = run_internal_transactions([transaction_a_changes])
+        insert(:pending_block_operation, block_hash: full_block.hash, block_number: full_block.number)
 
-      assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction_a.hash) |> Repo.one() |> is_nil()
-      assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction_b.hash) |> Repo.one() |> is_nil()
+        transaction_changes =
+          transaction
+          |> make_internal_transaction_changes(0, nil)
+          |> Map.put(:block_number, full_block.number - 1)
 
-      assert %{consensus: false} = Repo.get(Block, full_block.hash)
-      assert not is_nil(Repo.get(PendingBlockOperation, full_block.hash))
+        assert {:ok, _} = run_internal_transactions([transaction_changes])
+
+        assert from(i in InternalTransaction, where: i.transaction_hash == ^transaction.hash) |> Repo.one() |> is_nil()
+
+        assert %{consensus: true, refetch_needed: false} = Repo.get(Block, full_block.hash)
+
+        on_exit(fn -> Application.put_env(:indexer, :trace_block_ranges, original_config) end)
+      end
     end
 
     test "does not remove consensus when block is empty and no transactions are missing" do
       empty_block = insert(:block)
 
-      insert(:pending_block_operation, block_hash: empty_block.hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: empty_block.hash, block_number: empty_block.number)
 
       full_block = insert(:block)
       inserted = insert(:transaction) |> with_block(full_block)
 
-      insert(:pending_block_operation, block_hash: full_block.hash, fetch_internal_transactions: true)
+      insert(:pending_block_operation, block_hash: full_block.hash, block_number: full_block.number)
 
       assert full_block.hash == inserted.block_hash
 
-      transaction_changes = make_internal_transaction_changes(inserted, 0, nil)
-      transaction_changes_2 = make_internal_transaction_changes(inserted, 1, nil)
+      # transaction with index 0 is ignored in Nethermind JSON RPC Variant and not ignored in case of Geth
+      _transaction_changes_0 = make_internal_transaction_changes(inserted, 0, nil)
+      transaction_changes = make_internal_transaction_changes(inserted, 1, nil)
+      transaction_changes_2 = make_internal_transaction_changes(inserted, 2, nil)
       empty_changes = make_empty_block_changes(empty_block.number)
 
       assert {:ok, _} = run_internal_transactions([empty_changes, transaction_changes, transaction_changes_2])
@@ -343,18 +358,46 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
       assert %{consensus: true} = Repo.get(Block, empty_block.hash)
       assert PendingBlockOperation |> Repo.get(empty_block.hash) |> is_nil()
 
-      assert from(i in InternalTransaction, where: i.transaction_hash == ^inserted.hash, where: i.index == 0)
+      assert from(i in InternalTransaction, where: i.transaction_hash == ^inserted.hash, where: i.index == 1)
              |> Repo.one()
              |> is_nil() ==
-               true
+               false
 
-      assert from(i in InternalTransaction, where: i.transaction_hash == ^inserted.hash, where: i.index == 1)
+      assert from(i in InternalTransaction, where: i.transaction_hash == ^inserted.hash, where: i.index == 2)
              |> Repo.one()
              |> is_nil() ==
                false
 
       assert %{consensus: true} = Repo.get(Block, full_block.hash)
       assert PendingBlockOperation |> Repo.get(full_block.hash) |> is_nil()
+    end
+
+    test "successfully imports internal transaction with stop type" do
+      block = insert(:block)
+      transaction = insert(:transaction) |> with_block(block, status: :ok)
+      insert(:pending_block_operation, block_hash: transaction.block_hash, block_number: transaction.block_number)
+
+      assert :ok == transaction.status
+
+      {:ok, from_address_hash} = Explorer.Chain.Hash.Address.cast("0x0000000000000000000000000000000000000000")
+      {:ok, input} = Explorer.Chain.Data.cast("0x")
+
+      internal_transaction_changes = %{
+        block_number: block.number,
+        error: "execution stopped",
+        from_address_hash: from_address_hash,
+        gas: 0,
+        gas_used: 22594,
+        index: 0,
+        input: input,
+        trace_address: [],
+        transaction_hash: transaction.hash,
+        transaction_index: 0,
+        type: :stop,
+        value: Wei.from(Decimal.new(0), :wei)
+      }
+
+      assert {:ok, _} = run_internal_transactions([internal_transaction_changes])
     end
   end
 
@@ -404,7 +447,12 @@ defmodule Explorer.Chain.Import.Runner.InternalTransactionsTest do
       to_address_hash: insert(:address).hash,
       call_type: :call,
       gas: 0,
-      gas_used: nil,
+      gas_used:
+        if is_nil(error) do
+          100_500
+        else
+          nil
+        end,
       input: %Data{bytes: <<>>},
       output:
         if is_nil(error) do

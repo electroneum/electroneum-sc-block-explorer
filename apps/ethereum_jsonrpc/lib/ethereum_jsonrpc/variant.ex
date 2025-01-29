@@ -18,11 +18,11 @@ defmodule EthereumJSONRPC.Variant do
   Fetch the block reward contract beneficiaries for a given blocks from the variant of the Electroneum JSONRPC API.
 
   For more information on block reward contracts see:
-  https://wiki.parity.io/Block-Reward-Contract.html
+  https://openethereum.github.io/Block-Reward-Contract
 
   ## Returns
 
-   * `{:ok, %EthereumJSONRPC.FetchedBeneficiaries{params_list: [%{address_hash: address_hash, block_number: block_number}], errors: %{code: code, message: message, data: %{block_number: block_number}}}` - some beneficiaries were successfully fetched and some may have had errors.
+   * `{:ok, %EthereumJSONRPC.FetchedBeneficiaries{params_set: [%{address_hash: address_hash, block_number: block_number}], errors: %{code: code, message: message, data: %{block_number: block_number}}}` - some beneficiaries were successfully fetched and some may have had errors.
    * `{:error, reason}` - there was an error at the transport level
    * `:ignore` - the variant does not support fetching beneficiaries
   """
@@ -94,4 +94,43 @@ defmodule EthereumJSONRPC.Variant do
               ],
               EthereumJSONRPC.json_rpc_named_arguments()
             ) :: {:ok, [raw_trace_params]} | {:error, reason :: term} | :ignore
+
+  @doc """
+  Fetches the raw traces from the variant of the Ethereum JSONRPC API.
+
+  ## Returns
+
+   * `{:ok, [raw_traces]}` - raw traces were successfully fetched for all transactions
+   * `{:error, reason}` - there was one or more errors with `reason` in fetching at least one of the transaction's
+       raw traces
+   * `:ignore` - the variant does not support fetching internal transactions.
+  """
+  @callback fetch_transaction_raw_traces(
+              %{hash: EthereumJSONRPC.hash(), block_number: EthereumJSONRPC.block_number()},
+              EthereumJSONRPC.json_rpc_named_arguments()
+            ) :: {:ok, [raw_trace_params]} | {:error, reason :: term} | :ignore
+
+  def get do
+    default_variant = get_default_variant()
+
+    variant = System.get_env("ETHEREUM_JSONRPC_VARIANT", default_variant)
+
+    if variant == "parity" do
+      "nethermind"
+    else
+      variant
+      |> String.split(".")
+      |> List.last()
+      |> String.downcase()
+    end
+  end
+
+  # credo:disable-for-next-line
+  defp get_default_variant do
+    case Application.get_env(:explorer, :chain_type) do
+      :rsk -> "rsk"
+      :filecoin -> "filecoin"
+      _ -> "geth"
+    end
+  end
 end

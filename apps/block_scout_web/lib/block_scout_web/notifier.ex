@@ -2,30 +2,49 @@ defmodule BlockScoutWeb.Notifier do
   @moduledoc """
   Responds to events by sending appropriate channel updates to front-end.
   """
+  use Utils.CompileTimeEnvHelper, chain_type: [:explorer, :chain_type]
+
+  require Logger
 
   alias Absinthe.Subscription
+
+  alias BlockScoutWeb.API.V2, as: API_V2
 
   alias BlockScoutWeb.{
     AddressContractVerificationViaFlattenedCodeView,
     AddressContractVerificationViaJsonView,
+    AddressContractVerificationViaMultiPartFilesView,
     AddressContractVerificationViaStandardJsonInputView,
     AddressContractVerificationVyperView,
     Endpoint
   }
 
   alias Explorer.{Chain, Market, Repo}
-  alias Explorer.Chain.{Address, InternalTransaction, TokenTransfer, Transaction}
+  alias Explorer.Chain.Address.Counters
+  alias Explorer.Chain.{Address, BlockNumberHelper, DenormalizationHelper, InternalTransaction, Transaction}
   alias Explorer.Chain.Supply.RSK
   alias Explorer.Chain.Transaction.History.TransactionStats
   alias Explorer.Counters.{AverageBlockTime, Helper}
-  alias Explorer.ExchangeRates.Token
   alias Explorer.SmartContract.{CompilerVersion, Solidity.CodeCompiler}
   alias Phoenix.View
 
+  import Explorer.Chain.SmartContract.Proxy.Models.Implementation, only: [proxy_implementations_association: 0]
+
   @check_broadcast_sequence_period 500
 
+  case @chain_type do
+    :arbitrum ->
+      @chain_type_specific_events ~w(new_arbitrum_batches new_messages_to_arbitrum_amount)a
+
+    :optimism ->
+      @chain_type_specific_events ~w(new_optimism_batches new_optimism_deposits)a
+
+    _ ->
+      nil
+  end
+
   def handle_event({:chain_event, :addresses, type, addresses}) when type in [:realtime, :on_demand] do
-    Endpoint.broadcast("addresses:new_address", "count", %{count: Chain.address_estimated_count()})
+    Endpoint.broadcast("addresses:new_address", "count", %{count: Counters.address_estimated_count()})
 
     addresses
     |> Stream.reject(fn %Address{fetched_coin_balance: fetched_coin_balance} -> is_nil(fetched_coin_balance) end)
@@ -42,14 +61,24 @@ defmodule BlockScoutWeb.Notifier do
     Enum.each(address_token_balances, &broadcast_address_token_balance/1)
   end
 
-  def handle_event({:chain_event, :address_current_token_balances, type, address_current_token_balances})
-      when type in [:realtime, :on_demand] do
-    Enum.each(address_current_token_balances, &broadcast_address_token_balance/1)
+  def handle_event(
+        {:chain_event, :contract_verification_result, :on_demand, {address_hash, contract_verification_result}}
+      ) do
+    log_broadcast_verification_results_for_address(address_hash)
+
+    Endpoint.broadcast(
+      "addresses:#{address_hash}",
+      "verification_result",
+      %{
+        result: contract_verification_result
+      }
+    )
   end
 
   def handle_event(
         {:chain_event, :contract_verification_result, :on_demand, {address_hash, contract_verification_result, conn}}
       ) do
+    log_broadcast_verification_results_for_address(address_hash)
     %{view: view, compiler: compiler} = select_contract_type_and_form_view(conn.params)
 
     contract_verification_result =
@@ -65,7 +94,7 @@ defmodule BlockScoutWeb.Notifier do
             |> View.render_to_string("new.html",
               changeset: changeset,
               compiler_versions: compiler_versions,
-              evm_versions: CodeCompiler.allowed_evm_versions(),
+              evm_versions: CodeCompiler.evm_versions(:solidity),
               address_hash: address_hash,
               conn: conn,
               retrying: true
@@ -90,7 +119,7 @@ defmodule BlockScoutWeb.Notifier do
   end
 
   def handle_event({:chain_event, :blocks, :realtime, blocks}) do
-    last_broadcasted_block_number = Helper.fetch_from_cache(:number, :last_broadcasted_block)
+    last_broadcasted_block_number = Helper.fetch_from_ets_cache(:number, :last_broadcasted_block)
 
     blocks
     |> Enum.sort_by(& &1.number, :asc)
@@ -99,8 +128,18 @@ defmodule BlockScoutWeb.Notifier do
     end)
   end
 
+  def handle_event({:chain_event, :zkevm_confirmed_batches, :realtime, batches}) do
+    batches
+    |> Enum.sort_by(& &1.number, :asc)
+    |> Enum.each(fn confirmed_batch ->
+      Endpoint.broadcast("zkevm_batches:new_zkevm_confirmed_batch", "new_zkevm_confirmed_batch", %{
+        batch: confirmed_batch
+      })
+    end)
+  end
+
   def handle_event({:chain_event, :exchange_rate}) do
-    exchange_rate = Market.get_exchange_rate(Explorer.coin()) || Token.null()
+    exchange_rate = Market.get_coin_exchange_rate()
 
     market_history_data =
       case Market.fetch_recent_history() do
@@ -123,18 +162,49 @@ defmodule BlockScoutWeb.Notifier do
     })
   end
 
+  def handle_event(
+        {:chain_event, :internal_transactions, :on_demand,
+         [%InternalTransaction{index: 0, transaction_hash: transaction_hash}]}
+      ) do
+    Endpoint.broadcast("transactions:#{transaction_hash}", "raw_trace", %{raw_trace_origin: transaction_hash})
+  end
+
+  # internal transactions broadcast disabled on the indexer level, therefore it out of scope of the refactoring within https://github.com/blockscout/blockscout/pull/7474
   def handle_event({:chain_event, :internal_transactions, :realtime, internal_transactions}) do
     internal_transactions
     |> Stream.map(
       &(InternalTransaction.where_nonpending_block()
         |> Repo.get_by(transaction_hash: &1.transaction_hash, index: &1.index)
-        |> Repo.preload([:from_address, :to_address, transaction: :block]))
+        |> Repo.preload([:from_address, :to_address, :block]))
     )
     |> Enum.each(&broadcast_internal_transaction/1)
   end
 
   def handle_event({:chain_event, :token_transfers, :realtime, all_token_transfers}) do
-    transfers_by_token = Enum.group_by(all_token_transfers, fn tt -> to_string(tt.token_contract_address_hash) end)
+    all_token_transfers_full =
+      all_token_transfers
+      |> Repo.preload(
+        DenormalizationHelper.extend_transaction_preload([
+          :token,
+          :transaction,
+          from_address: [
+            :scam_badge,
+            :names,
+            :smart_contract,
+            proxy_implementations_association()
+          ],
+          to_address: [
+            :scam_badge,
+            :names,
+            :smart_contract,
+            proxy_implementations_association()
+          ]
+        ])
+      )
+
+    transfers_by_token = Enum.group_by(all_token_transfers_full, fn tt -> to_string(tt.token_contract_address_hash) end)
+
+    broadcast_token_transfers_websocket_v2(all_token_transfers_full, transfers_by_token)
 
     for {token_contract_address_hash, token_transfers} <- transfers_by_token do
       Subscription.publish(
@@ -143,38 +213,27 @@ defmodule BlockScoutWeb.Notifier do
         token_transfers: token_contract_address_hash
       )
 
-      token_transfers_full =
-        token_transfers
-        |> Stream.map(
-          &(TokenTransfer
-            |> Repo.get_by(
-              block_hash: &1.block_hash,
-              transaction_hash: &1.transaction_hash,
-              token_contract_address_hash: &1.token_contract_address_hash,
-              log_index: &1.log_index
-            )
-            |> Repo.preload([:from_address, :to_address, :token, transaction: :block]))
-        )
-
-      token_transfers_full
+      token_transfers
       |> Enum.each(&broadcast_token_transfer/1)
     end
   end
 
   def handle_event({:chain_event, :transactions, :realtime, transactions}) do
+    base_preloads = [
+      :block,
+      created_contract_address: [:scam_badge, :names, :smart_contract, proxy_implementations_association()],
+      from_address: [:scam_badge, :names, :smart_contract, proxy_implementations_association()],
+      to_address: [:scam_badge, :names, :smart_contract, proxy_implementations_association()]
+    ]
+
+    preloads = if API_V2.enabled?(), do: [:token_transfers | base_preloads], else: base_preloads
+
     transactions
-    |> Enum.map(& &1.hash)
-    |> Chain.hashes_to_transactions(
-      necessity_by_association: %{
-        :block => :optional,
-        [created_contract_address: :names] => :optional,
-        [from_address: :names] => :optional,
-        [to_address: :names] => :optional
-      }
-    )
-    |> Enum.map(fn tx ->
+    |> Repo.preload(preloads)
+    |> broadcast_transactions_websocket_v2()
+    |> Enum.map(fn transaction ->
       # Disable parsing of token transfers from websocket for transaction tab because we display token transfers at a separate tab
-      Map.put(tx, :token_transfers, [])
+      Map.put(transaction, :token_transfers, [])
     end)
     |> Enum.each(&broadcast_transaction/1)
   end
@@ -183,7 +242,7 @@ defmodule BlockScoutWeb.Notifier do
     today = Date.utc_today()
 
     [{:history_size, history_size}] =
-      Application.get_env(:block_scout_web, BlockScoutWeb.Chain.TransactionHistoryChartController, 30)
+      Application.get_env(:block_scout_web, BlockScoutWeb.Chain.TransactionHistoryChartController, {:history_size, 30})
 
     x_days_back = Date.add(today, -1 * history_size)
 
@@ -193,7 +252,70 @@ defmodule BlockScoutWeb.Notifier do
     Endpoint.broadcast("transactions:stats", "update", %{stats: stats})
   end
 
-  def handle_event(_), do: nil
+  def handle_event(
+        {:chain_event, :token_total_supply, :on_demand,
+         [%Explorer.Chain.Token{contract_address_hash: contract_address_hash, total_supply: total_supply} = token]}
+      )
+      when not is_nil(total_supply) do
+    Endpoint.broadcast("tokens:#{to_string(contract_address_hash)}", "token_total_supply", %{token: token})
+  end
+
+  def handle_event({:chain_event, :fetched_bytecode, :on_demand, [address_hash, fetched_bytecode]}) do
+    Endpoint.broadcast("addresses:#{to_string(address_hash)}", "fetched_bytecode", %{fetched_bytecode: fetched_bytecode})
+  end
+
+  def handle_event(
+        {:chain_event, :fetched_token_instance_metadata, :on_demand,
+         [token_contract_address_hash_string, token_id, fetched_token_instance_metadata]}
+      ) do
+    Endpoint.broadcast(
+      "token_instances:#{token_contract_address_hash_string}",
+      "fetched_token_instance_metadata",
+      %{token_id: token_id, fetched_metadata: fetched_token_instance_metadata}
+    )
+  end
+
+  def handle_event({:chain_event, :changed_bytecode, :on_demand, [address_hash]}) do
+    Endpoint.broadcast("addresses:#{to_string(address_hash)}", "changed_bytecode", %{})
+  end
+
+  def handle_event({:chain_event, :smart_contract_was_verified = event, :on_demand, [address_hash]}) do
+    broadcast_automatic_verification_events(event, address_hash)
+  end
+
+  def handle_event({:chain_event, :smart_contract_was_not_verified = event, :on_demand, [address_hash]}) do
+    broadcast_automatic_verification_events(event, address_hash)
+  end
+
+  def handle_event({:chain_event, :eth_bytecode_db_lookup_started = event, :on_demand, [address_hash]}) do
+    broadcast_automatic_verification_events(event, address_hash)
+  end
+
+  def handle_event({:chain_event, :address_current_token_balances, :on_demand, address_current_token_balances}) do
+    Endpoint.broadcast("addresses:#{address_current_token_balances.address_hash}", "address_current_token_balances", %{
+      address_current_token_balances: address_current_token_balances.address_current_token_balances
+    })
+  end
+
+  case @chain_type do
+    :arbitrum ->
+      def handle_event({:chain_event, topic, _, _} = event) when topic in @chain_type_specific_events,
+        # credo:disable-for-next-line Credo.Check.Design.AliasUsage
+        do: BlockScoutWeb.Notifiers.Arbitrum.handle_event(event)
+
+    :optimism ->
+      def handle_event({:chain_event, topic, _, _} = event) when topic in @chain_type_specific_events,
+        # credo:disable-for-next-line Credo.Check.Design.AliasUsage
+        do: BlockScoutWeb.Notifiers.Optimism.handle_event(event)
+
+    _ ->
+      nil
+  end
+
+  def handle_event(event) do
+    Logger.warning("Unknown broadcasted event #{inspect(event)}.")
+    nil
+  end
 
   def fetch_compiler_version(compiler) do
     case CompilerVersion.fetch_versions(compiler) do
@@ -206,14 +328,13 @@ defmodule BlockScoutWeb.Notifier do
   end
 
   def select_contract_type_and_form_view(params) do
-    verification_from_metadata_json? =
-      Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == "json:metadata"
+    verification_from_metadata_json? = check_verification_type(params, "json:metadata")
 
-    verification_from_standard_json_input? =
-      Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == "json:standard"
+    verification_from_standard_json_input? = check_verification_type(params, "json:standard")
 
-    verification_from_vyper? =
-      Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == "vyper"
+    verification_from_vyper? = check_verification_type(params, "vyper")
+
+    verification_from_multi_part_files? = check_verification_type(params, "multi-part-files")
 
     compiler = if verification_from_vyper?, do: :vyper, else: :solc
 
@@ -222,30 +343,37 @@ defmodule BlockScoutWeb.Notifier do
         verification_from_standard_json_input? -> AddressContractVerificationViaStandardJsonInputView
         verification_from_metadata_json? -> AddressContractVerificationViaJsonView
         verification_from_vyper? -> AddressContractVerificationVyperView
+        verification_from_multi_part_files? -> AddressContractVerificationViaMultiPartFilesView
         true -> AddressContractVerificationViaFlattenedCodeView
       end
 
     %{view: view, compiler: compiler}
   end
 
+  defp check_verification_type(params, type),
+    do: Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == type
+
   @doc """
-  Broadcast the percentage of blocks indexed so far.
+  Broadcast the percentage of blocks or pending block operations indexed so far.
   """
-  def broadcast_blocks_indexed_ratio(ratio, finished?) do
-    Endpoint.broadcast("blocks:indexing", "index_status", %{
+  @spec broadcast_indexed_ratio(String.t(), Decimal.t()) ::
+          :ok | {:error, term()}
+  def broadcast_indexed_ratio(msg, ratio) do
+    Endpoint.broadcast(msg, "index_status", %{
       ratio: Decimal.to_string(ratio),
-      finished: finished?
+      finished: Chain.finished_indexing_from_ratio?(ratio)
     })
   end
 
   defp broadcast_latest_block?(block, last_broadcasted_block_number) do
     cond do
-      last_broadcasted_block_number == 0 || last_broadcasted_block_number == block.number - 1 ||
+      last_broadcasted_block_number == 0 ||
+        last_broadcasted_block_number == BlockNumberHelper.previous_block_number(block.number) ||
           last_broadcasted_block_number < block.number - 4 ->
         broadcast_block(block)
         :ets.insert(:last_broadcasted_block, {:number, block.number})
 
-      last_broadcasted_block_number > block.number - 1 ->
+      last_broadcasted_block_number > BlockNumberHelper.previous_block_number(block.number) ->
         broadcast_block(block)
 
       true ->
@@ -257,9 +385,9 @@ defmodule BlockScoutWeb.Notifier do
 
   defp schedule_broadcasting(block) do
     :timer.sleep(@check_broadcast_sequence_period)
-    last_broadcasted_block_number = Helper.fetch_from_cache(:number, :last_broadcasted_block)
+    last_broadcasted_block_number = Helper.fetch_from_ets_cache(:number, :last_broadcasted_block)
 
-    if last_broadcasted_block_number == block.number - 1 do
+    if last_broadcasted_block_number == BlockNumberHelper.previous_block_number(block.number) do
       broadcast_block(block)
       :ets.insert(:last_broadcasted_block, {:number, block.number})
     else
@@ -285,7 +413,7 @@ defmodule BlockScoutWeb.Notifier do
       "balance_update",
       %{
         address: address,
-        exchange_rate: Market.get_exchange_rate(Explorer.coin()) || Token.null()
+        exchange_rate: Market.get_coin_exchange_rate()
       }
     )
   end
@@ -334,6 +462,40 @@ defmodule BlockScoutWeb.Notifier do
     end
   end
 
+  defp broadcast_transactions_websocket_v2(transactions) do
+    pending_transactions =
+      Enum.filter(transactions, fn
+        %Transaction{block_number: nil} -> true
+        _ -> false
+      end)
+
+    validated_transactions =
+      Enum.filter(transactions, fn
+        %Transaction{block_number: nil} -> false
+        _ -> true
+      end)
+
+    broadcast_transactions_websocket_v2_inner(
+      pending_transactions,
+      "transactions:new_pending_transaction",
+      "pending_transaction"
+    )
+
+    broadcast_transactions_websocket_v2_inner(validated_transactions, "transactions:new_transaction", "transaction")
+
+    transactions
+  end
+
+  defp broadcast_transactions_websocket_v2_inner(transactions, default_channel, event) do
+    if not Enum.empty?(transactions) do
+      Endpoint.broadcast(default_channel, event, %{
+        transactions: transactions
+      })
+    end
+
+    group_by_address_hashes_and_broadcast(transactions, event, :transactions)
+  end
+
   defp broadcast_transaction(%Transaction{block_number: nil} = pending) do
     broadcast_transaction(pending, "transactions:new_pending_transaction", "pending_transaction")
   end
@@ -362,13 +524,19 @@ defmodule BlockScoutWeb.Notifier do
     end
   end
 
+  defp broadcast_token_transfers_websocket_v2(tokens_transfers, transfers_by_token) do
+    for {token_contract_address_hash, token_transfers} <- transfers_by_token do
+      Endpoint.broadcast("tokens:#{token_contract_address_hash}", "token_transfer", %{token_transfers: token_transfers})
+    end
+
+    group_by_address_hashes_and_broadcast(tokens_transfers, "token_transfer", :token_transfers)
+  end
+
   defp broadcast_token_transfer(token_transfer) do
     broadcast_token_transfer(token_transfer, "token_transfer")
   end
 
   defp broadcast_token_transfer(token_transfer, event) do
-    Endpoint.broadcast("token_transfers:#{token_transfer.transaction_hash}", event, %{})
-
     Endpoint.broadcast("addresses:#{token_transfer.from_address_hash}", event, %{
       address: token_transfer.from_address,
       token_transfer: token_transfer
@@ -385,5 +553,34 @@ defmodule BlockScoutWeb.Notifier do
         token_transfer: token_transfer
       })
     end
+  end
+
+  defp group_by_address_hashes_and_broadcast(elements, event, map_key) do
+    grouped_by_from =
+      elements
+      |> Enum.group_by(fn el -> el.from_address_hash end)
+
+    grouped_by_to =
+      elements
+      |> Enum.group_by(fn el -> el.to_address_hash end)
+
+    grouped = Map.merge(grouped_by_to, grouped_by_from, fn _k, v1, v2 -> Enum.uniq(v1 ++ v2) end)
+
+    for {address_hash, elements} <- grouped do
+      Endpoint.broadcast("addresses:#{address_hash}", event, %{map_key => elements})
+    end
+  end
+
+  defp log_broadcast_verification_results_for_address(address_hash) do
+    Logger.info("Broadcast smart-contract #{address_hash} verification results")
+  end
+
+  defp log_broadcast_smart_contract_event(address_hash, event) do
+    Logger.info("Broadcast smart-contract #{address_hash}: #{event}")
+  end
+
+  defp broadcast_automatic_verification_events(event, address_hash) do
+    log_broadcast_smart_contract_event(address_hash, event)
+    Endpoint.broadcast("addresses:#{to_string(address_hash)}", to_string(event), %{})
   end
 end
