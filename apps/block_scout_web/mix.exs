@@ -187,7 +187,7 @@ defmodule BlockScoutWeb.Mixfile do
     [
       maintainers: ["Electroneum Networks Ltd."],
       licenses: ["GPL 3.0"],
-      links: %{"GitHub" => "https://github.com/blockscout/blockscout"}
+      links: %{"GitHub" => "https://github.com/electroneum/electroneum-sc-block-explorer"}
     ]
   end
 end

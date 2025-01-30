@@ -91,8 +91,8 @@ config :block_scout_web, BlockScoutWeb.Chain,
 
 config :block_scout_web, :footer,
   logo: System.get_env("FOOTER_LOGO"),
-  chat_link: System.get_env("FOOTER_CHAT_LINK", "https://discord.gg/blockscout"),
-  github_link: System.get_env("FOOTER_GITHUB_LINK", "https://github.com/blockscout/blockscout"),
+  chat_link: System.get_env("FOOTER_CHAT_LINK", "https://discord.gg/HR7GUfKD"),
+  github_link: System.get_env("FOOTER_GITHUB_LINK", "https://github.com/electroneum/electroneum-sc-block-explorer"),
   forum_link_enabled: ConfigHelper.parse_bool_env_var("FOOTER_FORUM_LINK_ENABLED"),
   forum_link: System.get_env("FOOTER_FORUM_LINK", "https://forum.poa.network/c/blockscout"),
   telegram_link_enabled: ConfigHelper.parse_bool_env_var("FOOTER_TELEGRAM_LINK_ENABLED"),
@@ -240,8 +240,8 @@ exchange_rates_coin = System.get_env("EXCHANGE_RATES_COIN")
 
 config :explorer,
   mode: app_mode,
-  coin: System.get_env("COIN") || exchange_rates_coin || "ETH",
-  coin_name: System.get_env("COIN_NAME") || exchange_rates_coin || "ETH",
+  coin: System.get_env("COIN") || exchange_rates_coin || "ETN",
+  coin_name: System.get_env("COIN_NAME") || exchange_rates_coin || "ETN",
   allowed_solidity_evm_versions:
     System.get_env("CONTRACT_VERIFICATION_ALLOWED_SOLIDITY_EVM_VERSIONS") ||
       "homestead,tangerineWhistle,spuriousDragon,byzantium,constantinople,petersburg,istanbul,berlin,london,paris,shanghai,cancun,default",
