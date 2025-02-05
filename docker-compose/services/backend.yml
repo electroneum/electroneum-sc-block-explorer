@@ -2,8 +2,11 @@ version: '3.9'
 
 services:
   backend:
-    image: blockscout/${DOCKER_REPO:-blockscout}:${DOCKER_TAG:-latest}
-    pull_policy: always
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: backend
+    pull_policy: never
     restart: always
     stop_grace_period: 5m
     container_name: 'backend'
