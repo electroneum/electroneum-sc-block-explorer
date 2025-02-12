@@ -28,6 +28,11 @@ services:
       service: backend
     links:
       - db:database
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+      args:
+        RELEASE_VERSION: 6.10.2
     environment:
         ETHEREUM_JSONRPC_VARIANT: 'geth'
         ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
